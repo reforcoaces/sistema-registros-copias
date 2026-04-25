@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatorios</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Relatorios de Faturamento</h1>
+    <p th:if="${currentUser != null}">
+        Usuario: <strong th:text="${currentUser.username}"></strong> |
+        Perfil: <strong th:text="${currentUser.role}"></strong> |
+        <a th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a><span th:if="${currentUser.role.name() == 'ADMIN'}"> | </span><a href="/logout">Sair</a>
+    </p>
+    <p>
+        <a href="/">Novo atendimento</a> |
+        <a href="/dashboard">Dashboard</a> |
+        <a href="/pedidos">Historico</a> |
+        <a th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" href="/importacao">Importacao retroativa</a><span th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}"> | </span>
+        <a th:href="@{/pedidos/export.csv(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar CSV</a> |
+        <a th:href="@{/pedidos/export.pdf(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar PDF</a>
+    </p>
+
+    <section class="card">
+        <h2>Filtrar relatorios</h2>
+        <form method="get" action="/relatorios" class="filter-form">
+            <div class="filter-row">
+                <label>Data inicio <input type="date" name="dataInicio" th:value="${filterDataInicio}"></label>
+                <label>Data fim <input type="date" name="dataFim" th:value="${filterDataFim}"></label>
+                <label>Pagamento
+                    <select name="pagamento">
+                        <option value="">Todos</option>
+                        <option th:each="p : ${paymentMethods}" th:value="${p.name()}"
+                                th:selected="${filterPagamento == p.name()}"
+                                th:text="${p.descricao}"></option>
+                    </select>
+                </label>
+            </div>
+            <div class="filter-actions">
+                <button type="submit">Aplicar filtro</button>
+                <a class="secondary-link" href="/relatorios">Limpar</a>
+            </div>
+        </form>
+        <p th:if="${filterDataInicio != '' or filterDataFim != '' or filterPagamento != ''}">
+            <strong>Total no periodo filtrado:</strong>
+            <span th:text="${'R$ ' + #numbers.formatDecimal(totalPeriodo, 1, 2)}"></span>
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Resumo rapido (calendario)</h2>
+        <p><strong>Faturamento de hoje:</strong> <span th:text="${'R$ ' + #numbers.formatDecimal(todayRevenue, 1, 2)}"></span></p>
+        <p><strong>Faturamento do mes atual:</strong> <span th:text="${'R$ ' + #numbers.formatDecimal(monthRevenue, 1, 2)}"></span></p>
+    </section>
+
+    <section class="card">
+        <h2>Faturamento diario</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Dia</th>
+                <th>Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(dailyReport)}">
+                <td colspan="2">Sem dados.</td>
+            </tr>
+            <tr th:each="item : ${dailyReport}">
+                <td th:text="${item.periodLabel}"></td>
+                <td th:text="${'R$ ' + #numbers.formatDecimal(item.totalAmount, 1, 2)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Faturamento mensal</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Mes</th>
+                <th>Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(monthlyReport)}">
+                <td colspan="2">Sem dados.</td>
+            </tr>
+            <tr th:each="item : ${monthlyReport}">
+                <td th:text="${item.periodLabel}"></td>
+                <td th:text="${'R$ ' + #numbers.formatDecimal(item.totalAmount, 1, 2)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

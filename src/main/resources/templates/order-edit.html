@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Pedido</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Editar Pedido Finalizado</h1>
+    <p><a href="/pedidos">Voltar</a> | <a href="/dashboard">Dashboard</a> | <a href="/logout">Sair</a></p>
+
+    <section class="card error-box" th:if="${errorMessage}" th:text="${errorMessage}"></section>
+
+    <section class="card">
+        <form method="post" th:object="${orderEditForm}">
+            <input type="hidden" th:field="*{id}">
+            <label>Data e hora</label>
+            <input type="datetime-local" th:field="*{createdAt}" required>
+
+            <div class="grid header" style="margin-top: 8px;">
+                <strong>Produto</strong>
+                <strong>Quantidade</strong>
+                <strong></strong>
+            </div>
+            <div class="grid row" th:each="item, stat : *{items}">
+                <select th:field="*{items[__${stat.index}__].productType}">
+                    <option th:each="product : ${productTypes}" th:value="${product}" th:text="${product.descricao}"></option>
+                </select>
+                <input type="number" min="1" th:field="*{items[__${stat.index}__].quantity}">
+                <span></span>
+            </div>
+
+            <label>Pagamento</label>
+            <select th:field="*{paymentMethod}">
+                <option th:each="payment : ${paymentMethods}" th:value="${payment}" th:text="${payment.descricao}"></option>
+            </select>
+            <div class="actions" style="grid-template-columns: 1fr; margin-top: 8px;">
+                <button type="submit">Salvar alteracoes</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importacao Retroativa</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Importacao de Dados Retroativos</h1>
+    <p th:if="${currentUser != null}">
+        Usuario: <strong th:text="${currentUser.username}"></strong> |
+        Perfil: <strong th:text="${currentUser.role}"></strong> |
+        <a th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a><span th:if="${currentUser.role.name() == 'ADMIN'}"> | </span><a href="/logout">Sair</a>
+    </p>
+    <p>
+        <a href="/">Novo atendimento</a> |
+        <a href="/dashboard">Dashboard</a> |
+        <a href="/pedidos">Historico</a> |
+        <a href="/relatorios">Relatorios</a>
+    </p>
+
+    <section class="card">
+        <p>Cole o conteudo CSV com colunas: DATA, PRODUTO, QUANTIDADE, VALOR TOTAL, MEIO DE PAGAMENTO.</p>
+        <p>Na coluna DATA use <strong>dd/MM/aaaa</strong> (ou <strong>dd/MM/aa</strong>); o <strong>ano vem do arquivo</strong> (2027, etc.). Pedidos novos pelo sistema usam sempre data e hora atuais.</p>
+        <form method="post" action="/importacao/processar">
+            <label for="rawData">Dados para importar</label>
+            <textarea id="rawData" name="rawData" rows="18" style="width:100%;" th:text="${rawData}"></textarea>
+            <div class="actions" style="margin-top: 8px;">
+                <button type="submit">Importar dados</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card success-box" th:if="${importedCount != null}">
+        <p><strong>Importados:</strong> <span th:text="${importedCount}"></span></p>
+        <p><strong>Ignorados:</strong> <span th:text="${skippedCount}"></span></p>
+        <p>Linhas invalidas ou sem dados minimos sao ignoradas automaticamente.</p>
+    </section>
+</main>
+</body>
+</html>

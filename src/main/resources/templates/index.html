@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Atendimento</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Novo Atendimento</h1>
+    <p th:if="${currentUser != null}">
+        Usuario: <strong th:text="${currentUser.username}"></strong> |
+        Perfil: <strong th:text="${currentUser.role}"></strong> |
+        <a th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a><span th:if="${currentUser.role.name() == 'ADMIN'}"> | </span><a href="/logout">Sair</a>
+    </p>
+
+    <section class="card">
+        <h2>Tabela de Precos</h2>
+        <ul>
+            <li>Impressao Preto e Branco: R$ 2,00</li>
+            <li>Impressao Colorida: R$ 3,00</li>
+            <li>Copia Preto e Branco: R$ 1,00</li>
+            <li>Copia Colorida: R$ 2,00</li>
+            <li>Digitalizacao: R$ 1,00</li>
+            <li>Plastificacao: R$ 5,00</li>
+        </ul>
+    </section>
+
+    <section class="card">
+        <form th:object="${orderForm}" method="post">
+            <div class="error-box" th:if="${#fields.hasAnyErrors()}">
+                <p>Corrija os erros abaixo:</p>
+                <ul>
+                    <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
+                </ul>
+            </div>
+
+            <div class="grid header">
+                <strong>Produto</strong>
+                <strong>Quantidade</strong>
+                <strong>Acoes</strong>
+            </div>
+
+            <div class="grid row" th:each="item, stat : *{items}">
+                <select th:field="*{items[__${stat.index}__].productType}">
+                    <option value="">Selecione</option>
+                    <option th:each="product : ${productTypes}"
+                            th:value="${product}"
+                            th:text="${product.descricao + ' - R$ ' + #numbers.formatDecimal(product.unitPrice, 1, 2)}">
+                    </option>
+                </select>
+                <input type="number" min="1" th:field="*{items[__${stat.index}__].quantity}">
+                <button type="submit"
+                        class="danger"
+                        th:formaction="@{/pedido/remover-item(index=${stat.index})}">
+                    Remover item
+                </button>
+            </div>
+
+            <div class="payment-box">
+                <label for="paymentMethod">Meio de pagamento</label>
+                <select id="paymentMethod" th:field="*{paymentMethod}">
+                    <option value="">Selecione</option>
+                    <option th:each="payment : ${paymentMethods}"
+                            th:value="${payment}"
+                            th:text="${payment.descricao}"></option>
+                </select>
+            </div>
+
+            <div class="total-box">
+                <span>Total do atendimento:</span>
+                <strong th:text="${'R$ ' + #numbers.formatDecimal(total, 1, 2)}">R$ 0,00</strong>
+            </div>
+
+            <div class="actions">
+                <button type="submit" formaction="/pedido/adicionar-item" class="secondary">Adicionar mais produto</button>
+                <button type="submit" formaction="/pedido/recalcular">Atualizar total</button>
+                <button type="submit" formaction="/pedido/finalizar">Finalizar pedido</button>
+            </div>
+        </form>
+    </section>
+
+    <p>
+        <a href="/dashboard">Dashboard</a> |
+        <a href="/pedidos">Ver historico de pedidos</a> |
+        <a href="/relatorios">Ver relatorios</a>
+        <span th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}"> | <a href="/importacao">Importacao retroativa</a></span>
+    </p>
+</main>
+</body>
+</html>

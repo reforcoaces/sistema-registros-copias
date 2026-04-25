@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Administracao de Usuarios</h1>
+    <p><a href="/">Inicio</a> | <a href="/dashboard">Dashboard</a> | <a href="/pedidos">Pedidos</a> | <a href="/logout">Sair</a></p>
+
+    <section class="card success-box" th:if="${param.sucessoCriacao}">
+        Usuario criado com sucesso.
+    </section>
+    <section class="card success-box" th:if="${param.sucessoSenha}">
+        Senha alterada com sucesso.
+    </section>
+    <section class="card error-box" th:if="${error}" th:text="${error}"></section>
+
+    <section class="card">
+        <h2>Usuarios cadastrados</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Perfil</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${users}">
+                <td th:text="${u.username}"></td>
+                <td th:text="${u.role}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="card">
+        <h2>Criar usuario</h2>
+        <form method="post" action="/usuarios/criar">
+            <label>Usuario</label>
+            <input name="username" required>
+            <label>Senha</label>
+            <input name="password" type="password" required>
+            <label>Perfil</label>
+            <select name="role" required>
+                <option value="COLABORADOR">COLABORADOR</option>
+                <option value="ADMIN">ADMIN</option>
+            </select>
+            <div class="actions" style="grid-template-columns: 1fr; margin-top: 8px;">
+                <button type="submit">Criar usuario</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Alterar senha</h2>
+        <form method="post" action="/usuarios/senha">
+            <label>Usuario</label>
+            <input name="username" required>
+            <label>Nova senha</label>
+            <input name="password" type="password" required>
+            <div class="actions" style="grid-template-columns: 1fr; margin-top: 8px;">
+                <button type="submit">Alterar senha</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

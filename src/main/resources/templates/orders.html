@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historico de Pedidos</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Historico de Pedidos</h1>
+    <p th:if="${currentUser != null}">
+        Usuario: <strong th:text="${currentUser.username}"></strong> |
+        Perfil: <strong th:text="${currentUser.role}"></strong> |
+        <a th:if="${isAdmin}" href="/usuarios">Usuarios</a><span th:if="${isAdmin}"> | </span><a href="/logout">Sair</a>
+    </p>
+    <p>
+        <a href="/">Registrar novo atendimento</a> |
+        <a href="/dashboard">Dashboard</a> |
+        <a href="/relatorios">Ver relatorios</a> |
+        <a th:if="${isAdmin}" href="/importacao">Importacao retroativa</a><span th:if="${isAdmin}"> | </span>
+        <a th:href="@{/pedidos/export.csv(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar CSV</a> |
+        <a th:href="@{/pedidos/export.pdf(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar PDF</a>
+    </p>
+
+    <section class="card">
+        <h2>Filtrar pedidos</h2>
+        <form method="get" action="/pedidos" class="filter-form">
+            <div class="filter-row">
+                <label>Data inicio <input type="date" name="dataInicio" th:value="${filterDataInicio}"></label>
+                <label>Data fim <input type="date" name="dataFim" th:value="${filterDataFim}"></label>
+                <label>Pagamento
+                    <select name="pagamento">
+                        <option value="">Todos</option>
+                        <option th:each="p : ${paymentMethods}" th:value="${p.name()}"
+                                th:selected="${filterPagamento == p.name()}"
+                                th:text="${p.descricao}"></option>
+                    </select>
+                </label>
+            </div>
+            <div class="filter-actions">
+                <button type="submit">Aplicar filtro</button>
+                <a class="secondary-link" href="/pedidos">Limpar</a>
+            </div>
+        </form>
+        <p th:if="${filterDataInicio != '' or filterDataFim != '' or filterPagamento != ''}">
+            <strong>Total filtrado:</strong>
+            <span th:text="${'R$ ' + #numbers.formatDecimal(totalFiltrado, 1, 2)}"></span>
+        </p>
+    </section>
+
+    <section class="card success-box" th:if="${param.sucesso}">
+        <strong>Pedido finalizado com sucesso!</strong>
+    </section>
+    <section class="card success-box" th:if="${param.editado}">
+        <strong>Pedido atualizado com sucesso!</strong>
+    </section>
+    <section class="card error-box" th:if="${param.acessoNegado}">
+        <strong>Acesso negado: esta acao e permitida apenas para administrador.</strong>
+    </section>
+
+    <section class="card" th:if="${#lists.isEmpty(orders)}">
+        <p>Nenhum pedido registrado ainda.</p>
+    </section>
+
+    <section class="card" th:each="order : ${orders}">
+        <div class="order-head">
+            <strong th:text="${'Pedido: ' + order.id}"></strong>
+            <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+        </div>
+        <div class="order-head">
+            <span th:text="${'Pagamento: ' + order.paymentMethod.descricao}"></span>
+            <strong th:text="${'Total: R$ ' + #numbers.formatDecimal(order.totalAmount, 1, 2)}"></strong>
+        </div>
+        <p th:if="${isAdmin}">
+            <a th:href="@{/pedidos/editar(id=${order.id})}">Editar pedido (admin)</a>
+        </p>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Qtd</th>
+                <th>Valor un.</th>
+                <th>Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${order.items}">
+                <td th:text="${item.productType.descricao}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${'R$ ' + #numbers.formatDecimal(item.unitPrice, 1, 2)}"></td>
+                <td th:text="${'R$ ' + #numbers.formatDecimal(item.total, 1, 2)}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
