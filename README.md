@@ -94,6 +94,12 @@ mvn clean package
 mvn spring-boot:run
 ```
 
+Depois do `package`, pode subir só com a JVM (sem Maven no arranque):
+
+```bash
+java -jar target/sistema-registros-copias-0.0.1-SNAPSHOT.jar
+```
+
 ### Exportacoes
 
 - CSV: `http://localhost:8080/pedidos/export.csv`
@@ -101,24 +107,8 @@ mvn spring-boot:run
 
 ### Acesso inicial
 
-- Admin: usuario `diogo`, senha `admin123`
+- Admin: usuario `admin`, senha `admin123`
 - Colaborador: usuario `lucilene`, senha `colab123`
 - Colaborador: usuario `lukas`, senha `colab123`
 
 Altere as senhas iniciais na tela `Usuarios` assim que entrar.
-
-## Deploy no Render (CI/CD via GitHub)
-
-Configure um Web Service no Render apontando para este repositorio:
-
-- **Build Command**: `mvn clean package`
-- **Start Command**: `java -jar target/sistema-registros-copias-0.0.1-SNAPSHOT.jar`
-
-Variaveis de ambiente recomendadas:
-- `PORT` (Render fornece automaticamente)
-- `APP_STORAGE_PATH=/var/data/orders.json` (ou outro caminho **dentro** do mount do disco)
-- `APP_USERS_PATH=/var/data/users.json` (mesma pasta que os pedidos, para senhas sobreviverem ao deploy)
-
-**Plano Free:** o disco do container e **efemero** — `orders.json` e `users.json` sao atualizados enquanto o servico roda, mas **perdem-se** em redeploy, restart ou quando a instancia “dorme”. Disco persistente **nao** existe no free. Alem disso, web services free **bloqueiam SMTP nas portas 25/465/587**; e-mails agendados costumam exigir instancia paga ou outro provedor (API HTTP, etc.).
-
-**Persistencia de verdade:** suba para um **plano pago** no Web Service, em **Disks** crie um disco (ex.: mount `/var/data`) e mantenha `APP_STORAGE_PATH` / `APP_USERS_PATH` apontando para arquivos **dentro** desse mount. O backup mensal por e-mail continua util como segunda copia.

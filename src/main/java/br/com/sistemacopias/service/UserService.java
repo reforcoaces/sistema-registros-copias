@@ -55,7 +55,7 @@ public class UserService {
             return;
         }
         users = new ArrayList<>();
-        users.add(AppUser.create("diogo", encoder.encode("admin123"), UserRole.ADMIN));
+        users.add(AppUser.create("admin", encoder.encode("admin123"), UserRole.ADMIN));
         users.add(AppUser.create("lucilene", encoder.encode("colab123"), UserRole.COLABORADOR));
         users.add(AppUser.create("lukas", encoder.encode("colab123"), UserRole.COLABORADOR));
         userRepository.saveAll(users);
