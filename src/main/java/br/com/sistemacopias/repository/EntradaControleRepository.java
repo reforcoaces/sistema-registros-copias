@@ -46,6 +46,9 @@ public class EntradaControleRepository {
             }
             List<EntradaControle> list = objectMapper.readValue(bytes, new TypeReference<>() {
             });
+            for (EntradaControle e : list) {
+                e.migrarCamposLegadosSeNecessario();
+            }
             list.sort(Comparator.comparing(EntradaControle::getDataHoraRegistro).reversed());
             return list;
         } catch (IOException e) {
@@ -74,6 +77,14 @@ public class EntradaControleRepository {
             }
         }
         if (!ok) {
+            throw new IllegalArgumentException("Entrada nao encontrada");
+        }
+        saveAllInternal(all);
+    }
+
+    public synchronized void deleteById(String id) {
+        List<EntradaControle> all = new ArrayList<>(findAll());
+        if (!all.removeIf(e -> e.getId().equals(id))) {
             throw new IllegalArgumentException("Entrada nao encontrada");
         }
         saveAllInternal(all);

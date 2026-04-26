@@ -79,6 +79,14 @@ public class OrderRepository {
         saveAllInternal(all);
     }
 
+    public synchronized void deleteById(String id) {
+        List<OrderRecord> all = new ArrayList<>(findAll());
+        if (!all.removeIf(o -> o.getId().equals(id))) {
+            throw new IllegalArgumentException("Pedido nao encontrado");
+        }
+        saveAllInternal(all);
+    }
+
     private void saveAllInternal(List<OrderRecord> allOrders) {
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(dataFilePath.toFile(), allOrders);

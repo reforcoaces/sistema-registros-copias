@@ -11,7 +11,27 @@
 <th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="reforco-wrap">
     <h1>Agenda semanal</h1>
-    <p class="muted">Segunda a sexta, 8h as 18h, blocos de 1h15 por celula. Preencha o que lembrar para cada horario (aluno, materia, sala, etc.).</p>
+    <p class="muted">Segunda a sexta, blocos consecutivos por celula. Preencha o que lembrar para cada horario (aluno, materia, sala, etc.).</p>
+
+    <div th:if="${param.horarioOk}" class="app-feedback app-feedback--ok" role="status" id="agenda-horario-ok">Horarios da grade atualizados. Os textos das celulas foram limpos para coincidir com a nova grade.</div>
+    <div th:if="${param.horarioNegado}" class="app-feedback app-feedback--err" role="alert">So administrador ou Lucilene podem alterar os horarios.</div>
+    <section class="card" th:if="${podeEditarHorarioAgenda}" style="margin-bottom:14px;">
+        <h2>Horarios da grade</h2>
+        <p class="muted" style="margin-top:0;">Ajuste o inicio do primeiro bloco, a duracao de cada aula (minutos) e a hora limite em que a ultima aula deve <strong>terminar</strong>. Se a nova combinacao mudar as faixas horarias, o <strong>conteudo das celulas e limpo</strong> e passa a valer a nova grade (o layout da tabela mantem-se).</p>
+        <div class="error-box" th:if="${erroHorario}" th:text="${erroHorario}"></div>
+        <form method="post" th:action="@{/reforco/agenda/horario}">
+            <label>Hora de inicio (primeira aula)
+                <input type="time" name="horaInicio" th:value="${horarioHoraInicio}" required>
+            </label>
+            <label style="margin-left:12px;">Duracao de cada bloco (minutos)
+                <input type="number" name="duracaoMinutos" min="15" max="240" th:value="${horarioDuracao}" required style="width:5rem;">
+            </label>
+            <label style="margin-left:12px;">Hora limite de termino (ultima aula)
+                <input type="time" name="horaLimite" th:value="${horarioHoraLimite}" required>
+            </label>
+            <button type="submit" class="btn-nav" style="margin-left:12px;">Aplicar horarios</button>
+        </form>
+    </section>
 
     <header class="app-toolbar" th:if="${currentUser != null}">
         <nav class="app-toolbar__nav">
@@ -59,12 +79,14 @@
 <script th:src="@{/js/app-ui.js}" defer></script>
 <script>
     (function () {
-        var el = document.getElementById('agenda-feedback');
-        if (el) {
-            setTimeout(function () {
-                el.remove();
-            }, 4800);
-        }
+        ['agenda-feedback', 'agenda-horario-ok'].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) {
+                setTimeout(function () {
+                    el.remove();
+                }, 5200);
+            }
+        });
     })();
 </script>
 </body>

@@ -46,7 +46,7 @@ public class AgendaRepository {
             if (a.getTextos() == null) {
                 a.setTextos(new LinkedHashMap<>());
             }
-            for (AgendaGrade.CelulaDef c : AgendaGrade.celulas()) {
+            for (AgendaGrade.CelulaDef c : AgendaGrade.celulasDaAgenda(a)) {
                 a.getTextos().putIfAbsent(c.id(), "");
             }
             return a;
@@ -67,7 +67,7 @@ public class AgendaRepository {
     private static AgendaSemana agendaVazia() {
         AgendaSemana a = new AgendaSemana();
         Map<String, String> m = new LinkedHashMap<>();
-        for (AgendaGrade.CelulaDef c : AgendaGrade.celulas()) {
+        for (AgendaGrade.CelulaDef c : AgendaGrade.celulasDaAgenda(a)) {
             m.put(c.id(), "");
         }
         a.setTextos(m);

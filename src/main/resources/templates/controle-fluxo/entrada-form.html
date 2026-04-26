@@ -17,16 +17,24 @@
     </nav>
 
     <section class="card">
+        <div th:if="${entradaPendenteAutomatica}" class="app-feedback app-feedback--ok" style="margin-bottom:12px;">
+            Esta linha foi gerada automaticamente como <strong>mensalidade pendente</strong>. Pode ajustar o valor ou a observacao; para contabilizar como entrada efetiva, use <strong>Confirmar recebimento</strong> na lista de entradas.
+        </div>
         <form th:object="${form}" method="post" id="form-entrada"
               th:action="${editMode} ? |/controle-fluxo/entradas/${form.id}/editar| : @{/controle-fluxo/entradas/nova}">
             <input type="hidden" th:field="*{id}" th:if="${editMode}">
+            <th:block th:if="${entradaPendenteAutomatica}">
+                <input type="hidden" th:field="*{tipo}">
+                <input type="hidden" th:field="*{meioPagamento}">
+                <input type="hidden" th:field="*{alunoId}">
+            </th:block>
             <div class="error-box" th:if="${#fields.hasAnyErrors()}">
                 <ul>
                     <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
                 </ul>
             </div>
 
-            <fieldset class="form-fieldset-tipo">
+            <fieldset class="form-fieldset-tipo" th:unless="${entradaPendenteAutomatica}">
                 <legend>Tipo de entrada</legend>
                 <label th:each="t : ${tiposEntrada}" class="form-radio-line">
                     <input type="radio" th:field="*{tipo}" th:value="${t}" class="js-tipo-entrada" required>
@@ -34,7 +42,13 @@
                 </label>
             </fieldset>
 
-            <div id="bloco-aluno" style="display:none;">
+            <div class="form-stack-block" th:if="${entradaPendenteAutomatica}">
+                <label for="notaAuto">Observacao <span class="muted" style="font-weight:400;">(opcional)</span></label>
+                <input id="notaAuto" type="text" th:field="*{descricaoLivre}" class="form-stack-input"
+                       placeholder="Ex.: ajuste de valor combinado">
+            </div>
+
+            <div id="bloco-aluno" style="display:none;" th:unless="${entradaPendenteAutomatica}">
                 <div class="form-stack-block">
                     <label for="alunoId">Aluno (lista do Reforco Aces)</label>
                     <select id="alunoId" th:field="*{alunoId}">
@@ -49,7 +63,7 @@
                 </div>
             </div>
 
-            <div id="bloco-livre" style="display:none;">
+            <div id="bloco-livre" style="display:none;" th:unless="${entradaPendenteAutomatica}">
                 <div class="form-stack-block">
                     <label for="livre">Descricao da entrada</label>
                     <p class="muted" style="margin:0 0 8px;font-size:0.88rem;">Descreva abaixo o que entrou (ex.: doacao, aluguel de sala).</p>
@@ -58,7 +72,7 @@
                 </div>
             </div>
 
-            <div class="form-stack-block">
+            <div class="form-stack-block" th:unless="${entradaPendenteAutomatica}">
                 <label for="meioPagamento">Meio da entrada</label>
                 <select id="meioPagamento" th:field="*{meioPagamento}" required>
                     <option th:value="${null}" disabled th:selected="${form.meioPagamento == null}">Selecione</option>
@@ -66,7 +80,7 @@
                 </select>
             </div>
 
-            <div class="form-stack-block" id="bloco-meio-outro" style="display:none;">
+            <div class="form-stack-block" id="bloco-meio-outro" style="display:none;" th:unless="${entradaPendenteAutomatica}">
                 <label for="meioPagamentoOutro">Especifique o meio</label>
                 <input id="meioPagamentoOutro" th:field="*{meioPagamentoOutro}" placeholder="Ex.: cheque, voucher">
             </div>
@@ -92,6 +106,7 @@
             var radios = document.querySelectorAll('.js-tipo-entrada');
             var ba = document.getElementById('bloco-aluno');
             var bl = document.getElementById('bloco-livre');
+            if (!radios.length || !ba || !bl) return;
             function sync() {
                 var v = null;
                 radios.forEach(function (r) { if (r.checked) v = r.value; });
@@ -111,15 +126,14 @@
             var sel = document.getElementById('meioPagamento');
             var blo = document.getElementById('bloco-meio-outro');
             var inp = document.getElementById('meioPagamentoOutro');
+            if (!sel) return;
             function syncMeio() {
                 var show = sel && sel.value === MEIO_OUTRO;
                 if (blo) blo.style.display = show ? 'block' : 'none';
                 if (inp) inp.required = show;
             }
-            if (sel) {
-                sel.addEventListener('change', syncMeio);
-                syncMeio();
-            }
+            sel.addEventListener('change', syncMeio);
+            syncMeio();
         })();
     </script>
 </main>

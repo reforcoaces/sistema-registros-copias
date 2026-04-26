@@ -11,7 +11,7 @@
 <th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="fluxo-wrap">
     <h1>Entradas manuais</h1>
-    <p class="muted">As entradas geradas pelos <strong>pedidos do sistema de copias</strong> aparecem no dashboard (nao precisam ser registadas aqui).</p>
+    <p class="muted">As entradas geradas pelos <strong>pedidos do sistema de copias</strong> aparecem no dashboard (nao precisam ser registadas aqui). Mensalidades de alunos entram como <strong>pendentes</strong> ate confirmacao.</p>
     <header class="app-toolbar" th:if="${currentUser != null}">
         <nav class="app-toolbar__nav">
             <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
@@ -25,19 +25,53 @@
     </nav>
 
     <div th:if="${param.sucesso}" class="app-feedback app-feedback--ok" role="status" id="fluxo-entradas-ok">Registo guardado.</div>
+    <div th:if="${param.confirmada}" class="app-feedback app-feedback--ok" role="status">Entrada confirmada como recebida.</div>
+    <div th:if="${param.erroConfirmar}" class="app-feedback app-feedback--err" role="alert">Nao foi possivel confirmar esta entrada.</div>
 
     <section class="card" style="margin-top:12px;">
         <a class="btn-nav" href="/controle-fluxo/entradas/nova">Nova entrada</a>
     </section>
 
     <section class="card" style="margin-top:16px;">
+        <h2>Filtros</h2>
+        <form class="fluxo-filtros-form" method="get" th:action="@{/controle-fluxo/entradas}">
+            <label>Aluno
+                <select name="alunoId">
+                    <option value="">Todos</option>
+                    <option th:each="a : ${alunos}" th:value="${a.id}" th:selected="${a.id == filtroAlunoId}"
+                            th:text="${a.nomeCompleto}">Nome</option>
+                </select>
+            </label>
+            <label>Situacao
+                <select name="situacao">
+                    <option value="" th:selected="${filtroSituacao == null or filtroSituacao.isEmpty()}">Todas</option>
+                    <option value="pendente" th:selected="${filtroSituacao == 'pendente'}">Pendente</option>
+                    <option value="confirmada" th:selected="${filtroSituacao == 'confirmada'}">Confirmada</option>
+                </select>
+            </label>
+            <label>Data inicial
+                <input type="date" name="dataInicio" th:value="${filtroDataInicio}">
+            </label>
+            <label>Data final
+                <input type="date" name="dataFim" th:value="${filtroDataFim}">
+            </label>
+            <button type="submit" class="btn-nav">Aplicar</button>
+        </form>
+        <p class="muted" th:if="${filtroAlunoId != null and !filtroAlunoId.isEmpty() and filtroDataInicio != null and !filtroDataInicio.isBlank() and filtroDataFim != null and !filtroDataFim.isBlank()}">
+            Total <strong>confirmado</strong> deste aluno no periodo (pagamentos aluno):
+            <strong th:text="${'R$ ' + #numbers.formatDecimal(totalConfirmadoAlunoPeriodo, 1, 2)}">R$ 0</strong>
+        </p>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
         <h2>Historico</h2>
-        <p class="muted" th:if="${entradas.isEmpty()}">Nenhuma entrada manual.</p>
+        <p class="muted" th:if="${entradas.isEmpty()}">Nenhuma entrada com estes filtros.</p>
         <div style="overflow-x:auto;" th:if="${!entradas.isEmpty()}">
             <table class="mov-table">
                 <thead>
                 <tr>
                     <th>Data/hora registo</th>
+                    <th>Situacao</th>
                     <th>Tipo</th>
                     <th>Detalhe</th>
                     <th>Meio</th>
@@ -48,6 +82,10 @@
                 <tbody>
                 <tr th:each="e : ${entradas}">
                     <td th:text="${#temporals.format(e.dataHoraRegistro, 'dd/MM/yyyy HH:mm')}">—</td>
+                    <td>
+                        <span class="tag-pendente" th:if="${e.situacao.name() == 'PENDENTE'}">Pendente</span>
+                        <span th:if="${e.situacao.name() == 'CONFIRMADA'}">Confirmada</span>
+                    </td>
                     <td th:text="${e.tipo.label}">—</td>
                     <td>
                         <span th:if="${e.tipo.name() == 'PAGAMENTO_ALUNO'}"
@@ -56,8 +94,13 @@
                     </td>
                     <td th:text="${e.meioPagamentoResumo}">—</td>
                     <td class="col-valor" th:text="${'R$ ' + #numbers.formatDecimal(e.valor, 1, 2)}">R$ 0</td>
-                    <td><a class="btn-nav btn-nav--secondary" style="min-height:34px;padding:6px 10px;font-size:0.8rem;"
-                           th:href="@{/controle-fluxo/entradas/{id}/editar(id=${e.id})}">Editar</a></td>
+                    <td>
+                        <form th:if="${e.situacao.name() == 'PENDENTE'}" th:action="@{/controle-fluxo/entradas/{id}/confirmar(id=${e.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="btn-nav" style="min-height:34px;padding:6px 10px;font-size:0.8rem;">Confirmar recebimento</button>
+                        </form>
+                        <a class="btn-nav btn-nav--secondary" style="min-height:34px;padding:6px 10px;font-size:0.8rem;display:inline-flex;align-items:center;"
+                           th:href="@{/controle-fluxo/entradas/{id}/editar(id=${e.id})}">Editar</a>
+                    </td>
                 </tr>
                 </tbody>
             </table>

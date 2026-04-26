@@ -32,6 +32,9 @@ public class EntradaControleForm {
         if (meioPagamento == null) {
             return false;
         }
+        if (meioPagamento == MeioPagamentoEntrada.A_CONFIRMAR) {
+            return true;
+        }
         if (meioPagamento == MeioPagamentoEntrada.OUTRO) {
             return meioPagamentoOutro != null && !meioPagamentoOutro.isBlank();
         }

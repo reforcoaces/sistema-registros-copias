@@ -17,6 +17,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         return path.startsWith("/login")
                 || path.startsWith("/css/")
                 || path.startsWith("/js/")
+                || path.startsWith("/images/")
                 || path.startsWith("/error");
     }
 
@@ -114,6 +115,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         if ((path.startsWith("/usuarios")
                 || path.startsWith("/pedidos/editar")
+                || path.startsWith("/pedidos/remover")
                 || path.startsWith("/importacao")) && user.getRole() != UserRole.ADMIN) {
             response.sendRedirect("/pedidos?acessoNegado");
             return false;

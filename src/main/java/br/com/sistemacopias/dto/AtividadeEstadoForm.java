@@ -2,33 +2,22 @@ package br.com.sistemacopias.dto;
 
 import br.com.sistemacopias.model.StatusAtividade;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public class AtividadeForm {
-    @NotBlank(message = "Descreva a atividade")
-    private String texto;
+public class AtividadeEstadoForm {
 
     @NotNull(message = "Selecione o estado da atividade")
-    private StatusAtividade status = StatusAtividade.A_FAZER;
+    private StatusAtividade status;
 
-    /** Obrigatorio quando status e FINALIZADO. */
+    /** Obrigatorio quando status e FINALIZADO (percepcao da professora Lucilene). */
     private String percepcaoProfessor;
 
-    @AssertTrue(message = "Ao criar como finalizada, registe a percepcao sobre o desenvolvimento do aluno.")
+    @AssertTrue(message = "Ao marcar como finalizada, registe a percepcao sobre o desenvolvimento do aluno.")
     public boolean isPercepcaoSeFinalizado() {
         if (status != StatusAtividade.FINALIZADO) {
             return true;
         }
         return percepcaoProfessor != null && !percepcaoProfessor.isBlank();
-    }
-
-    public String getTexto() {
-        return texto;
-    }
-
-    public void setTexto(String texto) {
-        this.texto = texto;
     }
 
     public StatusAtividade getStatus() {

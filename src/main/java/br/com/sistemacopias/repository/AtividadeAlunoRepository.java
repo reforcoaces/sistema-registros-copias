@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -44,8 +45,12 @@ public class AtividadeAlunoRepository {
             if (bytes.length == 0) {
                 return new ArrayList<>();
             }
-            return objectMapper.readValue(bytes, new TypeReference<>() {
+            List<AtividadeAluno> list = objectMapper.readValue(bytes, new TypeReference<>() {
             });
+            for (AtividadeAluno a : list) {
+                a.migrarStatusLegadoSeNecessario();
+            }
+            return list;
         } catch (IOException e) {
             throw new IllegalStateException("Erro ao ler atividades", e);
         }
@@ -58,9 +63,29 @@ public class AtividadeAlunoRepository {
                 .collect(Collectors.toList());
     }
 
+    public synchronized Optional<AtividadeAluno> findById(String id) {
+        return findAll().stream().filter(a -> a.getId().equals(id)).findFirst();
+    }
+
     public synchronized void save(AtividadeAluno nova) {
         List<AtividadeAluno> all = new ArrayList<>(findAll());
         all.add(nova);
+        saveAllInternal(all);
+    }
+
+    public synchronized void update(AtividadeAluno atualizada) {
+        List<AtividadeAluno> all = new ArrayList<>(findAll());
+        boolean ok = false;
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).getId().equals(atualizada.getId())) {
+                all.set(i, atualizada);
+                ok = true;
+                break;
+            }
+        }
+        if (!ok) {
+            throw new IllegalArgumentException("Atividade nao encontrada");
+        }
         saveAllInternal(all);
     }
 

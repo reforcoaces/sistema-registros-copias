@@ -6,6 +6,7 @@
     <title>Reforco Aces — Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
     <link rel="stylesheet" th:href="@{/css/reforco.css}">
 </head>
 <body>
@@ -28,6 +29,16 @@
         <a class="btn-nav" href="/reforco/agenda">Agenda semanal</a>
     </nav>
 
+    <form method="get" action="/reforco/dashboard" class="card fluxo-filtros-form" style="margin-top:10px;">
+        <label for="filtroNomeDash">Filtrar por nome do aluno</label>
+        <input id="filtroNomeDash" type="search" name="filtroNome" th:value="${filtroNomeAlunoParam}" placeholder="Parte do nome" style="min-width:220px;padding:8px;border-radius:8px;border:1px solid #cbd5e1;">
+        <button type="submit" class="btn-nav">Filtrar</button>
+        <a class="btn-nav btn-nav--secondary" href="/reforco/dashboard">Limpar</a>
+    </form>
+    <p class="muted" th:if="${dash.filtroNomeAluno != null and !dash.filtroNomeAluno.isBlank()}" style="margin:4px 0 0;">
+        Filtro activo: <strong th:text="${dash.filtroNomeAluno}">texto</strong> — cartoes e listas reflectem apenas alunos com este texto no nome.
+    </p>
+
     <div class="dash-grid" style="margin-top: 8px;">
         <div class="dash-card dash-blue">
             <span class="dash-label">Alunos cadastrados</span>
@@ -44,6 +55,7 @@
     </div>
 
     <form method="get" action="/reforco/dashboard" class="card dash-vista-form">
+        <input type="hidden" name="filtroNome" th:value="${filtroNomeAlunoParam}">
         <label for="vistaReforco">Vista complementar <span class="muted" style="font-weight:400;">(opcional)</span></label>
         <select id="vistaReforco" name="vistaExtra" onchange="this.form.submit()">
             <option value="nenhuma" th:selected="${vistaExtra == 'nenhuma'}">Nenhuma</option>

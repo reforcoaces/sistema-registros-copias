@@ -1,6 +1,7 @@
 package br.com.sistemacopias.config;
 
 import br.com.sistemacopias.model.AppUser;
+import br.com.sistemacopias.model.UserRole;
 import br.com.sistemacopias.support.ReforcoAccess;
 import br.com.sistemacopias.support.SessionKeys;
 import jakarta.servlet.http.HttpSession;
@@ -22,6 +23,17 @@ public class CurrentUserAdvice {
     @ModelAttribute("podeControleFluxo")
     public boolean podeControleFluxo(HttpSession session) {
         return ReforcoAccess.podeAcessarControleEntradasSaidas((AppUser) session.getAttribute("loggedUser"));
+    }
+
+    @ModelAttribute("podeRemoverPedidos")
+    public boolean podeRemoverPedidos(HttpSession session) {
+        AppUser u = (AppUser) session.getAttribute("loggedUser");
+        return u != null && u.getRole() == UserRole.ADMIN;
+    }
+
+    @ModelAttribute("podeEditarHorarioAgenda")
+    public boolean podeEditarHorarioAgenda(HttpSession session) {
+        return ReforcoAccess.podeEditarHorarioAgenda((AppUser) session.getAttribute("loggedUser"));
     }
 
     @ModelAttribute("sistemaAtivo")

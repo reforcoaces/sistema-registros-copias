@@ -9,16 +9,21 @@ import br.com.sistemacopias.model.CategoriaSaidaRecorrente;
 import br.com.sistemacopias.model.EntradaControle;
 import br.com.sistemacopias.model.MeioPagamentoEntrada;
 import br.com.sistemacopias.model.OrderRecord;
+import br.com.sistemacopias.model.RecorrenciaMensalidade;
 import br.com.sistemacopias.model.SaidaControle;
+import br.com.sistemacopias.model.SituacaoEntrada;
 import br.com.sistemacopias.model.TipoEntradaControle;
 import br.com.sistemacopias.repository.AlunoRepository;
 import br.com.sistemacopias.repository.EntradaControleRepository;
+import br.com.sistemacopias.repository.OrigemCompraRepository;
 import br.com.sistemacopias.repository.OrderRepository;
 import br.com.sistemacopias.repository.SaidaControleRepository;
+import br.com.sistemacopias.support.OrigensCompraPadrao;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -34,21 +39,71 @@ public class ControleFluxoService {
     private final EntradaControleRepository entradaRepository;
     private final OrderRepository orderRepository;
     private final AlunoRepository alunoRepository;
+    private final OrigemCompraRepository origemCompraRepository;
 
     public ControleFluxoService(
             SaidaControleRepository saidaRepository,
             EntradaControleRepository entradaRepository,
             OrderRepository orderRepository,
-            AlunoRepository alunoRepository) {
+            AlunoRepository alunoRepository,
+            OrigemCompraRepository origemCompraRepository) {
         this.saidaRepository = saidaRepository;
         this.entradaRepository = entradaRepository;
         this.orderRepository = orderRepository;
         this.alunoRepository = alunoRepository;
+        this.origemCompraRepository = origemCompraRepository;
     }
 
-    public FluxoDashboardDto montarDashboard(YearMonth mes) {
+    /** Sugestoes para o campo &quot;Onde foi comprado&quot;: padroes + origens guardadas pelo utilizador. */
+    public List<String> listarOrigensCompraParaUi() {
+        List<String> out = new ArrayList<>();
+        for (String p : OrigensCompraPadrao.TODAS) {
+            if (!listaContemIgnorandoMaiusculas(out, p)) {
+                out.add(p);
+            }
+        }
+        for (String c : origemCompraRepository.findAllCustom()) {
+            if (!listaContemIgnorandoMaiusculas(out, c)) {
+                out.add(c);
+            }
+        }
+        return out;
+    }
+
+    public void registrarOrigemCompraUsada(String origemCompra) {
+        String v = trimOrNull(origemCompra);
+        if (v == null) {
+            return;
+        }
+        if (OrigensCompraPadrao.contemIgnorandoMaiusculas(v)) {
+            return;
+        }
+        origemCompraRepository.addIfAbsentIgnoreCase(v);
+    }
+
+    private static boolean listaContemIgnorandoMaiusculas(List<String> lista, String s) {
+        if (s == null) {
+            return false;
+        }
+        for (String x : lista) {
+            if (x != null && x.equalsIgnoreCase(s)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public FluxoDashboardDto montarDashboard(YearMonth mes, String filtroAlunoId) {
+        gerarParcelasAutomaticasNoMes(mes);
+
         FluxoDashboardDto dto = new FluxoDashboardDto();
         dto.setMesReferencia(mes);
+
+        String filtroId = trimOrNull(filtroAlunoId);
+        if (filtroId != null) {
+            dto.setFiltroAlunoId(filtroId);
+            alunoRepository.findById(filtroId).ifPresent(a -> dto.setFiltroAlunoNome(a.getNomeCompleto()));
+        }
 
         LocalDate ini = mes.atDay(1);
         LocalDate fim = mes.atEndOfMonth();
@@ -62,12 +117,34 @@ public class ControleFluxoService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         dto.setTotalSaidasMes(totalSaidas);
 
-        BigDecimal entMan = entradaRepository.findAll().stream()
+        List<EntradaControle> entradasMes = entradaRepository.findAll().stream()
                 .filter(e -> e.getDataHoraRegistro() != null && YearMonth.from(e.getDataHoraRegistro()).equals(mes))
+                .toList();
+
+        BigDecimal entManConf = entradasMes.stream()
+                .filter(e -> e.getSituacao() == SituacaoEntrada.CONFIRMADA)
                 .map(EntradaControle::getValor)
                 .filter(Objects::nonNull)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        dto.setTotalEntradasManuaisMes(entMan);
+        BigDecimal entManPend = entradasMes.stream()
+                .filter(e -> e.getSituacao() == SituacaoEntrada.PENDENTE)
+                .map(EntradaControle::getValor)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        dto.setTotalEntradasManuaisConfirmadasMes(entManConf);
+        dto.setTotalEntradasManuaisPendentesMes(entManPend);
+        dto.setTotalEntradasManuaisMes(entManConf.add(entManPend));
+
+        if (filtroId != null) {
+            BigDecimal filtroSum = entradasMes.stream()
+                    .filter(e -> e.getSituacao() == SituacaoEntrada.CONFIRMADA)
+                    .filter(e -> e.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO)
+                    .filter(e -> filtroId.equals(e.getAlunoId()))
+                    .map(EntradaControle::getValor)
+                    .filter(Objects::nonNull)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            dto.setTotalEntradasAlunoFiltradoConfirmadasMes(filtroSum);
+        }
 
         BigDecimal entPed = orderRepository.findAll().stream()
                 .filter(o -> o.getCreatedAt() != null && YearMonth.from(o.getCreatedAt()).equals(mes))
@@ -81,10 +158,15 @@ public class ControleFluxoService {
 
         List<MovimentoFluxoLinha> linhas = new ArrayList<>();
 
+        boolean filtrarMovimentos = filtroId != null;
+
         for (SaidaControle s : saidaRepository.findAll()) {
             if (s.getDataCompraOuSaida() == null
                     || s.getDataCompraOuSaida().isBefore(ini)
                     || s.getDataCompraOuSaida().isAfter(fim)) {
+                continue;
+            }
+            if (filtrarMovimentos) {
                 continue;
             }
             linhas.add(new MovimentoFluxoLinha(
@@ -100,19 +182,30 @@ public class ControleFluxoService {
             if (e.getDataHoraRegistro() == null || !YearMonth.from(e.getDataHoraRegistro()).equals(mes)) {
                 continue;
             }
+            if (filtrarMovimentos) {
+                if (e.getTipo() != TipoEntradaControle.PAGAMENTO_ALUNO || !filtroId.equals(e.getAlunoId())) {
+                    continue;
+                }
+            }
             String desc = descricaoEntrada(e, nomesAlunos);
             String meio = e.getMeioPagamento() != null ? e.getMeioPagamentoResumo() : "-";
+            String sit = e.getSituacao() == SituacaoEntrada.PENDENTE ? " | Pendente" : "";
+            boolean pendente = e.getSituacao() == SituacaoEntrada.PENDENTE;
             linhas.add(new MovimentoFluxoLinha(
                     e.getId(),
                     e.getDataHoraRegistro(),
                     false,
                     desc,
                     e.getValor(),
-                    "Entrada manual | Meio: " + meio));
+                    "Entrada manual | Meio: " + meio + sit + (e.getReferenciaCobranca() != null ? " | Ref: " + e.getReferenciaCobranca() : ""),
+                    pendente));
         }
 
         for (OrderRecord o : orderRepository.findAll()) {
             if (o.getCreatedAt() == null || !YearMonth.from(o.getCreatedAt()).equals(mes)) {
+                continue;
+            }
+            if (filtrarMovimentos) {
                 continue;
             }
             String pg = o.getPaymentMethod() != null ? o.getPaymentMethod().getDescricao() : "";
@@ -130,6 +223,225 @@ public class ControleFluxoService {
         linhas.sort(Comparator.comparing(MovimentoFluxoLinha::getDataHora).reversed());
         dto.setMovimentosDoMes(linhas);
         return dto;
+    }
+
+    private void gerarParcelasAutomaticasNoMes(YearMonth mes) {
+        LocalDate ini = mes.atDay(1);
+        LocalDate fim = mes.atEndOfMonth();
+        List<EntradaControle> todas = entradaRepository.findAll();
+        for (Aluno a : alunoRepository.findAll()) {
+            if (!temMensalidadeAtiva(a)) {
+                continue;
+            }
+            if (temPendentePagamentoAluno(todas, a.getId())) {
+                continue;
+            }
+            LocalDate prox = a.getProximaCobrancaPrevista();
+            if (prox == null) {
+                continue;
+            }
+            if (prox.isBefore(ini) || prox.isAfter(fim)) {
+                continue;
+            }
+            String ref = "COB-" + a.getId() + "-" + prox;
+            if (existeReferencia(todas, ref)) {
+                continue;
+            }
+            String nota = "Mensalidade — " + (a.getRecorrenciaMensalidade() != null
+                    ? a.getRecorrenciaMensalidade().getLabel()
+                    : RecorrenciaMensalidade.MENSAL.getLabel());
+            EntradaControle e = EntradaControle.mensalidadeAutomatica(
+                    a.getId(),
+                    a.getValorMensalidade(),
+                    prox.atTime(12, 0),
+                    ref,
+                    nota);
+            entradaRepository.save(e);
+            todas.add(0, e);
+        }
+    }
+
+    public void sincronizarMensalidadeAposSalvarAluno(String alunoId) {
+        Aluno aluno = alunoRepository.findById(alunoId).orElse(null);
+        if (aluno == null) {
+            return;
+        }
+        if (!temMensalidadeAtiva(aluno)) {
+            removerPendentesAutomaticosAluno(alunoId);
+            aluno.setProximaCobrancaPrevista(null);
+            alunoRepository.update(aluno);
+            return;
+        }
+        RecorrenciaMensalidade rec = aluno.getRecorrenciaMensalidade() != null
+                ? aluno.getRecorrenciaMensalidade()
+                : RecorrenciaMensalidade.MENSAL;
+        aluno.setRecorrenciaMensalidade(rec);
+        LocalDate reg = aluno.getCreatedAt() != null
+                ? aluno.getCreatedAt().toLocalDate()
+                : LocalDate.now();
+        if (aluno.getProximaCobrancaPrevista() == null) {
+            aluno.setProximaCobrancaPrevista(primeiraDataRecorrenteApos(reg, aluno.getDiaPagamentoPreferido(), rec));
+        }
+        alunoRepository.update(aluno);
+
+        String refIns = refInscricao(alunoId);
+        List<EntradaControle> todas = entradaRepository.findAll();
+        Optional<EntradaControle> insOpt = todas.stream()
+                .filter(e -> refIns.equals(e.getReferenciaCobranca()))
+                .findFirst();
+        if (insOpt.isEmpty()) {
+            LocalDateTime dhIns = aluno.getCreatedAt() != null ? aluno.getCreatedAt() : LocalDateTime.now();
+            EntradaControle ins = EntradaControle.mensalidadeAutomatica(
+                    alunoId,
+                    aluno.getValorMensalidade(),
+                    dhIns,
+                    refIns,
+                    "Mensalidade na data de registo do aluno");
+            entradaRepository.save(ins);
+        } else {
+            EntradaControle ins = insOpt.get();
+            if (ins.getSituacao() == SituacaoEntrada.PENDENTE) {
+                ins.setValor(aluno.getValorMensalidade());
+                entradaRepository.update(ins);
+            }
+        }
+    }
+
+    public void confirmarEntrada(String entradaId) {
+        EntradaControle e = entradaRepository.findById(entradaId)
+                .orElseThrow(() -> new IllegalArgumentException("Entrada nao encontrada"));
+        if (e.getSituacao() != SituacaoEntrada.PENDENTE) {
+            throw new IllegalArgumentException("So e possivel confirmar entradas pendentes");
+        }
+        e.setSituacao(SituacaoEntrada.CONFIRMADA);
+        if (e.getMeioPagamento() == MeioPagamentoEntrada.A_CONFIRMAR) {
+            e.setMeioPagamento(MeioPagamentoEntrada.PIX);
+        }
+        entradaRepository.update(e);
+
+        if (e.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO
+                && e.getAlunoId() != null
+                && e.isEntradaAutomaticaMensalidade()) {
+            Aluno aluno = alunoRepository.findById(e.getAlunoId()).orElse(null);
+            if (aluno != null && temMensalidadeAtiva(aluno)) {
+                RecorrenciaMensalidade rec = aluno.getRecorrenciaMensalidade() != null
+                        ? aluno.getRecorrenciaMensalidade()
+                        : RecorrenciaMensalidade.MENSAL;
+                LocalDate base = e.getDataHoraRegistro() != null
+                        ? e.getDataHoraRegistro().toLocalDate()
+                        : LocalDate.now();
+                aluno.setProximaCobrancaPrevista(proximaDataAposPagamento(base, rec, aluno.getDiaPagamentoPreferido()));
+                alunoRepository.update(aluno);
+            }
+        }
+    }
+
+    public BigDecimal somarEntradasConfirmadasPagamentoAluno(String alunoId, LocalDate dataInicio, LocalDate dataFim) {
+        if (alunoId == null || dataInicio == null || dataFim == null) {
+            return BigDecimal.ZERO;
+        }
+        LocalDateTime ini = dataInicio.atStartOfDay();
+        LocalDateTime fim = dataFim.plusDays(1).atStartOfDay();
+        return entradaRepository.findAll().stream()
+                .filter(e -> alunoId.equals(e.getAlunoId()))
+                .filter(e -> e.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO)
+                .filter(e -> e.getSituacao() == SituacaoEntrada.CONFIRMADA)
+                .filter(e -> e.getDataHoraRegistro() != null
+                        && !e.getDataHoraRegistro().isBefore(ini)
+                        && e.getDataHoraRegistro().isBefore(fim))
+                .map(EntradaControle::getValor)
+                .filter(Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public List<EntradaControle> listarEntradasFiltradas(
+            String alunoId,
+            SituacaoEntrada situacao,
+            LocalDate dataInicio,
+            LocalDate dataFim) {
+        List<EntradaControle> all = entradaRepository.findAll();
+        String aid = trimOrNull(alunoId);
+        return all.stream()
+                .filter(e -> aid == null || aid.equals(e.getAlunoId()))
+                .filter(e -> situacao == null || e.getSituacao() == situacao)
+                .filter(e -> {
+                    if (dataInicio == null && dataFim == null) {
+                        return true;
+                    }
+                    if (e.getDataHoraRegistro() == null) {
+                        return false;
+                    }
+                    LocalDate d = e.getDataHoraRegistro().toLocalDate();
+                    if (dataInicio != null && d.isBefore(dataInicio)) {
+                        return false;
+                    }
+                    return dataFim == null || !d.isAfter(dataFim);
+                })
+                .sorted(Comparator.comparing(EntradaControle::getDataHoraRegistro).reversed())
+                .toList();
+    }
+
+    private void removerPendentesAutomaticosAluno(String alunoId) {
+        List<String> ids = entradaRepository.findAll().stream()
+                .filter(e -> alunoId.equals(e.getAlunoId()))
+                .filter(e -> e.getSituacao() == SituacaoEntrada.PENDENTE)
+                .filter(EntradaControle::isEntradaAutomaticaMensalidade)
+                .map(EntradaControle::getId)
+                .toList();
+        for (String id : ids) {
+            entradaRepository.deleteById(id);
+        }
+    }
+
+    private static boolean temMensalidadeAtiva(Aluno a) {
+        return a.getValorMensalidade() != null && a.getValorMensalidade().compareTo(BigDecimal.ZERO) > 0;
+    }
+
+    private static boolean temPendentePagamentoAluno(List<EntradaControle> todas, String alunoId) {
+        return todas.stream().anyMatch(e -> alunoId.equals(e.getAlunoId())
+                && e.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO
+                && e.getSituacao() == SituacaoEntrada.PENDENTE);
+    }
+
+    private static boolean existeReferencia(List<EntradaControle> todas, String ref) {
+        return todas.stream().anyMatch(e -> ref.equals(e.getReferenciaCobranca()));
+    }
+
+    private static String refInscricao(String alunoId) {
+        return "INS-" + alunoId;
+    }
+
+    /**
+     * Primeira data de cobranca recorrente depois do cadastro (a inscricao em si e outra linha {@code INS-*}).
+     */
+    static LocalDate primeiraDataRecorrenteApos(LocalDate inicioRegistro, Integer diaPref, RecorrenciaMensalidade rec) {
+        RecorrenciaMensalidade r = rec != null ? rec : RecorrenciaMensalidade.MENSAL;
+        if (r.isPorSemanas()) {
+            return inicioRegistro.plusWeeks(r.getSemanas());
+        }
+        int dia = diaPref != null ? Math.min(Math.max(diaPref, 1), 31) : 5;
+        YearMonth ym = YearMonth.from(inicioRegistro);
+        LocalDate cand = ym.atDay(Math.min(dia, ym.lengthOfMonth()));
+        if (cand.isAfter(inicioRegistro)) {
+            return cand;
+        }
+        YearMonth next = ym.plusMonths(r.getMeses());
+        return next.atDay(Math.min(dia, next.lengthOfMonth()));
+    }
+
+    static LocalDate proximaDataAposPagamento(LocalDate pagamento, RecorrenciaMensalidade rec, Integer diaPref) {
+        RecorrenciaMensalidade r = rec != null ? rec : RecorrenciaMensalidade.MENSAL;
+        if (r.isPorSemanas()) {
+            return pagamento.plusWeeks(r.getSemanas());
+        }
+        int dia = diaPref != null ? Math.min(Math.max(diaPref, 1), 31) : 5;
+        YearMonth baseYm = YearMonth.from(pagamento);
+        LocalDate cand = baseYm.plusMonths(r.getMeses()).atDay(Math.min(dia, baseYm.plusMonths(r.getMeses()).lengthOfMonth()));
+        if (!cand.isAfter(pagamento)) {
+            YearMonth n2 = baseYm.plusMonths(r.getMeses() * 2L);
+            return n2.atDay(Math.min(dia, n2.lengthOfMonth()));
+        }
+        return cand;
     }
 
     private static String detalheSaida(SaidaControle s) {
@@ -167,6 +479,7 @@ public class ControleFluxoService {
         s.setLinkCompra(trimOrNull(form.getLinkCompra()));
         s.setOrigemCompra(trimOrNull(form.getOrigemCompra()));
         saidaRepository.save(s);
+        registrarOrigemCompraUsada(s.getOrigemCompra());
     }
 
     public void atualizarSaida(SaidaControleForm form) {
@@ -180,6 +493,7 @@ public class ControleFluxoService {
         existente.setLinkCompra(trimOrNull(form.getLinkCompra()));
         existente.setOrigemCompra(trimOrNull(form.getOrigemCompra()));
         saidaRepository.update(existente);
+        registrarOrigemCompraUsada(existente.getOrigemCompra());
     }
 
     private static String trimOrNull(String s) {
@@ -238,6 +552,9 @@ public class ControleFluxoService {
     }
 
     public void criarEntrada(EntradaControleForm form) {
+        if (form.getMeioPagamento() == MeioPagamentoEntrada.A_CONFIRMAR) {
+            throw new IllegalArgumentException("Meio reservado a entradas automaticas");
+        }
         validarEntrada(form);
         String alunoId = null;
         if (form.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO
@@ -259,9 +576,18 @@ public class ControleFluxoService {
     }
 
     public void atualizarEntrada(EntradaControleForm form) {
-        validarEntrada(form);
         EntradaControle existente = entradaRepository.findById(form.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Entrada nao encontrada"));
+        if (existente.getSituacao() == SituacaoEntrada.PENDENTE && existente.isEntradaAutomaticaMensalidade()) {
+            existente.setValor(form.getValor());
+            existente.setDescricaoLivre(form.getDescricaoLivre() != null ? form.getDescricaoLivre().trim() : "");
+            entradaRepository.update(existente);
+            return;
+        }
+        if (form.getMeioPagamento() == MeioPagamentoEntrada.A_CONFIRMAR) {
+            throw new IllegalArgumentException("Meio reservado a entradas automaticas");
+        }
+        validarEntrada(form);
         existente.setTipo(form.getTipo());
         if (form.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO
                 && form.getAlunoId() != null

@@ -16,6 +16,16 @@ public class ReforcoDashboardView {
     private Map<String, String> nomeAlunoPorId;
     /** Contagem por nivel escolar (label -> quantidade de alunos). */
     private Map<String, Integer> alunosPorEscolaridade = new LinkedHashMap<>();
+    /** Texto de filtro por nome aplicado na listagem (pode ser vazio). */
+    private String filtroNomeAluno = "";
+
+    public String getFiltroNomeAluno() {
+        return filtroNomeAluno;
+    }
+
+    public void setFiltroNomeAluno(String filtroNomeAluno) {
+        this.filtroNomeAluno = filtroNomeAluno != null ? filtroNomeAluno : "";
+    }
 
     public Map<String, String> getNomeAlunoPorId() {
         return nomeAlunoPorId;

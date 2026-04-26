@@ -25,11 +25,13 @@ public class ReforcoDashboardController {
 
     @GetMapping({"", "/dashboard"})
     public String dashboard(
+            @RequestParam(required = false) String filtroNome,
             @RequestParam(required = false, defaultValue = "nenhuma") String vistaExtra,
             Model model) {
-        var dash = dashboardService.montar();
+        var dash = dashboardService.montar(filtroNome);
         model.addAttribute("dash", dash);
-        model.addAttribute("linhasAgenda", AgendaGrade.linhasPorHorario());
+        model.addAttribute("filtroNomeAlunoParam", filtroNome != null ? filtroNome : "");
+        model.addAttribute("linhasAgenda", AgendaGrade.linhasPorHorario(AgendaGrade.celulasDaAgenda(dash.getAgenda())));
 
         String vista = DashboardVistaUtil.reforco(vistaExtra);
         model.addAttribute("vistaExtra", vista);

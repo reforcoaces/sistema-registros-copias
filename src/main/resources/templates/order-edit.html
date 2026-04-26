@@ -45,6 +45,13 @@
                 <button type="submit">Salvar alteracoes</button>
             </div>
         </form>
+        <p style="margin-top:16px;" th:if="${podeRemoverPedidos}">
+            <form th:action="@{/pedidos/remover}" method="post" style="display:inline;"
+                  onsubmit="return confirm('Remover este pedido permanentemente? Esta accao nao pode ser desfeita.');">
+                <input type="hidden" name="id" th:value="${orderEditForm.id}">
+                <button type="submit" class="btn-nav btn-nav--danger">Remover este pedido</button>
+            </form>
+        </p>
     </section>
 </main>
 <th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>

@@ -22,21 +22,30 @@
     <div class="sistema-cards">
         <form method="post" action="/escolher-sistema" class="card sistema-card">
             <input type="hidden" name="sistema" value="COPIAS">
-            <h2>Registro de copias</h2>
+            <div class="sistema-card__head">
+                <img class="sistema-card__logo" th:src="@{/images/registros-copias.png}" alt="Registro de copias" width="80" height="80">
+                <h2 class="sistema-card__title">Registro de copias</h2>
+            </div>
             <p>Atendimentos, pedidos, relatorios e exportacao.</p>
             <button type="submit" class="btn-nav">Entrar</button>
         </form>
 
         <form method="post" action="/escolher-sistema" class="card sistema-card" th:if="${podeReforco}">
             <input type="hidden" name="sistema" value="REFORCO">
-            <h2>Reforco Aces</h2>
+            <div class="sistema-card__head">
+                <img class="sistema-card__logo" th:src="@{/images/reforco-escolar-aces.png}" alt="Reforco Aces" width="80" height="80">
+                <h2 class="sistema-card__title">Reforco Aces</h2>
+            </div>
             <p>Alunos, atividades, agenda semanal e acompanhamento pedagogico.</p>
             <button type="submit" class="btn-nav">Entrar</button>
         </form>
 
         <form method="post" action="/escolher-sistema" class="card sistema-card" th:if="${podeControleFluxo}">
             <input type="hidden" name="sistema" value="CONTROLE_FLUXO">
-            <h2>Controle de entradas e saidas</h2>
+            <div class="sistema-card__head">
+                <img class="sistema-card__logo" th:src="@{/images/entradas-saidas.png}" alt="Controle de entradas e saidas" width="80" height="80">
+                <h2 class="sistema-card__title">Controle de entradas e saidas</h2>
+            </div>
             <p>Despesas, entradas (inclui faturamento dos pedidos de copias), totais por mes e banco utilizado.</p>
             <button type="submit" class="btn-nav">Entrar</button>
         </form>

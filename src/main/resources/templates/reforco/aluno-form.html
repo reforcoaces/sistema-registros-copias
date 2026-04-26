@@ -34,20 +34,58 @@
             <label for="idade">Idade</label>
             <input id="idade" type="number" min="1" max="120" th:field="*{idade}" required>
 
-            <fieldset style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin:12px 0;">
-                <legend>Escolaridade (marque uma opcao)</legend>
-                <div class="escolaridade-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
-                    <label th:each="e : ${escolaridades}" style="display:flex;align-items:center;gap:8px;">
-                        <input type="radio" th:field="*{escolaridade}" th:value="${e}" required>
-                        <span th:text="${e.label}">Nivel</span>
-                    </label>
-                </div>
-            </fieldset>
+            <label for="escolaridade">Serie / escolaridade</label>
+            <select id="escolaridade" th:field="*{escolaridade}" required class="aluno-form__escolaridade">
+                <option value="" th:if="${alunoForm.escolaridade == null}">Selecione a serie do aluno</option>
+                <option th:each="e : ${escolaridades}" th:value="${e}" th:text="${e.label}">Nivel</option>
+            </select>
 
-            <label style="display:flex;align-items:center;gap:10px;margin-top:8px;">
-                <input type="checkbox" th:field="*{pcd}">
-                PCD (pessoa com deficiencia)
-            </label>
+            <label for="tipoPcd">PCD (pessoa com deficiencia)</label>
+            <select id="tipoPcd" th:field="*{tipoPcd}" required class="aluno-form__tipo-pcd">
+                <option th:each="t : ${tiposPcd}" th:value="${t}" th:text="${t.label}">Nao e PCD</option>
+            </select>
+            <p class="muted" style="margin:6px 0 0;font-size:0.88rem;">Escolha &quot;Nao e PCD&quot; ou o tipo (TEA ou Down).</p>
+
+            <div class="aluno-form-opcional">
+                <h2 class="aluno-form-opcional__titulo">Dados opcionais (familia e reforco)</h2>
+
+                <label for="sexo">Sexo (opcional)</label>
+                <select id="sexo" th:field="*{sexo}" class="aluno-form__escolaridade">
+                    <option value="">Nao informar</option>
+                    <option th:each="s : ${sexos}" th:value="${s}" th:text="${s.label}">—</option>
+                </select>
+
+                <label for="nomePai">Nome do pai (opcional)</label>
+                <input id="nomePai" type="text" th:field="*{nomePai}" maxlength="120" autocomplete="name">
+
+                <label for="nomeMae">Nome da mae (opcional)</label>
+                <input id="nomeMae" type="text" th:field="*{nomeMae}" maxlength="120" autocomplete="name">
+
+                <label for="telefoneContato">Telefone para contato (opcional)</label>
+                <input id="telefoneContato" type="text" th:field="*{telefoneContato}" maxlength="32" inputmode="tel" autocomplete="tel" placeholder="Ex.: (11) 98765-4321">
+
+                <label for="objetivoReforco">Objetivo do reforco (opcional)</label>
+                <input id="objetivoReforco" type="text" th:field="*{objetivoReforco}" maxlength="400" placeholder="Ex.: Melhorar leitura e interpretacao de texto">
+
+                <label for="expectativaPais">Expectativa dos pais (opcional)</label>
+                <input id="expectativaPais" type="text" th:field="*{expectativaPais}" maxlength="400" placeholder="Ex.: Acompanhar deveres e preparar provas">
+            </div>
+
+            <div class="aluno-form-opcional">
+                <h2 class="aluno-form-opcional__titulo">Mensalidade e cobranca (fluxo de entradas)</h2>
+                <p class="muted" style="margin:0 0 10px;font-size:0.88rem;">Se informar um valor, o sistema regista uma <strong>entrada pendente</strong> no dia do cadastro (e as recorrentes no fluxo), ate Lucilene ou o administrador <strong>confirmar</strong> o recebimento.</p>
+                <label for="valorMensalidade">Valor da mensalidade (R$) <span class="muted" style="font-weight:400;">(opcional)</span></label>
+                <input id="valorMensalidade" type="number" step="0.01" min="0" th:field="*{valorMensalidade}" placeholder="0 = sem mensalidade automatica">
+
+                <label for="diaPagamentoPreferido">Melhor dia do mes para pagamento</label>
+                <input id="diaPagamentoPreferido" type="number" min="1" max="31" th:field="*{diaPagamentoPreferido}" placeholder="Ex.: 5 ou 20">
+
+                <label for="recorrenciaMensalidade">Recorrencia da cobranca</label>
+                <select id="recorrenciaMensalidade" th:field="*{recorrenciaMensalidade}" class="aluno-form__escolaridade">
+                    <option value="">Se tiver mensalidade, selecione</option>
+                    <option th:each="r : ${recorrenciasMensalidade}" th:value="${r}" th:text="${r.label}">Mensal</option>
+                </select>
+            </div>
 
             <div class="actions" style="margin-top:16px;">
                 <button type="submit" class="btn-nav">Guardar</button>

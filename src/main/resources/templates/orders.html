@@ -58,6 +58,8 @@
 
     <div th:if="${param.sucesso}" class="app-feedback app-feedback--ok" role="status" id="orders-feedback">Pedido finalizado com sucesso.</div>
     <div th:if="${param.editado}" class="app-feedback app-feedback--ok" role="status" id="orders-feedback-ed">Pedido atualizado com sucesso.</div>
+    <div th:if="${param.removido}" class="app-feedback app-feedback--ok" role="status" id="orders-feedback-rm">Pedido removido.</div>
+    <div th:if="${param.removerErro}" class="app-feedback app-feedback--err" role="alert">Nao foi possivel remover o pedido.</div>
     <section class="card error-box" th:if="${param.acessoNegado}">
         <strong>Acesso negado: esta acao e permitida apenas para administrador.</strong>
     </section>
@@ -77,6 +79,12 @@
         </div>
         <p th:if="${isAdmin}">
             <a th:href="@{/pedidos/editar(id=${order.id})}">Editar pedido (admin)</a>
+            <span class="muted"> | </span>
+            <form th:action="@{/pedidos/remover}" method="post" style="display:inline;"
+                  onsubmit="return confirm('Remover este pedido de forma permanente?');">
+                <input type="hidden" name="id" th:value="${order.id}">
+                <button type="submit" class="btn-nav btn-nav--danger" style="display:inline;padding:6px 12px;font-size:0.88rem;">Remover pedido</button>
+            </form>
         </p>
 
         <table>
@@ -104,7 +112,7 @@
 <script>
     (function () {
         setTimeout(function () {
-            ["orders-feedback", "orders-feedback-ed"].forEach(function (id) {
+            ["orders-feedback", "orders-feedback-ed", "orders-feedback-rm"].forEach(function (id) {
                 var el = document.getElementById(id);
                 if (el) {
                     el.remove();

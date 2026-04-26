@@ -204,6 +204,20 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/pedidos/remover")
+    public String removerPedido(@RequestParam("id") String id, HttpSession session) {
+        AppUser currentUser = (AppUser) session.getAttribute("loggedUser");
+        if (currentUser == null || currentUser.getRole() != UserRole.ADMIN) {
+            return "redirect:/pedidos?acessoNegado";
+        }
+        try {
+            orderService.deleteOrder(id);
+        } catch (IllegalArgumentException e) {
+            return "redirect:/pedidos?removerErro=1";
+        }
+        return "redirect:/pedidos?removido=1";
+    }
+
     @GetMapping(value = "/pedidos/export.csv", produces = "text/csv")
     public ResponseEntity<byte[]> exportCsv(@RequestParam(required = false) String dataInicio,
                                             @RequestParam(required = false) String dataFim,

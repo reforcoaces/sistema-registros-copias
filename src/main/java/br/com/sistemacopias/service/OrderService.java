@@ -193,6 +193,10 @@ public class OrderService {
         orderRepository.update(existing);
     }
 
+    public void deleteOrder(String id) {
+        orderRepository.deleteById(id);
+    }
+
     public BigDecimal getTodayRevenue() {
         return getRevenueForDate(LocalDate.now(APP_ZONE));
     }

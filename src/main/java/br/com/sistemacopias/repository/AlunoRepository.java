@@ -46,6 +46,10 @@ public class AlunoRepository {
             }
             List<Aluno> list = objectMapper.readValue(bytes, new TypeReference<>() {
             });
+            for (Aluno a : list) {
+                a.migrarCampoPcdLegadoSeNecessario();
+                a.migrarMensalidadeLegadoSeNecessario();
+            }
             list.sort(Comparator.comparing(Aluno::getNomeCompleto, String.CASE_INSENSITIVE_ORDER));
             return list;
         } catch (IOException e) {

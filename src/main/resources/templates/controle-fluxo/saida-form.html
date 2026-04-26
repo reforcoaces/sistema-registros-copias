@@ -73,7 +73,14 @@
 
             <div class="form-stack-block">
                 <label for="origemCompra">Onde foi comprado (opcional)</label>
-                <input id="origemCompra" th:field="*{origemCompra}" placeholder="Ex.: Mercado Livre, loja fisica, Shopee">
+                <p class="muted" style="margin:0 0 8px;font-size:0.88rem;">
+                    Selecione uma sugestao na lista ou digite outro local; ao guardar, textos novos passam a aparecer nas sugestoes.
+                </p>
+                <input id="origemCompra" list="origens-compra-datalist" th:field="*{origemCompra}" autocomplete="off"
+                       placeholder="Ex.: Mercado Livre, Shopee, Amazon…">
+                <datalist id="origens-compra-datalist">
+                    <option th:each="o : ${origensCompra}" th:value="${o}"></option>
+                </datalist>
             </div>
 
             <div class="actions" style="margin-top:14px;">

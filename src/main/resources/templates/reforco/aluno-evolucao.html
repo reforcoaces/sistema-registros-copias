@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="|Evolucao — ${aluno.nomeCompleto}|">Evolucao</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/reforco.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="reforco-wrap">
+    <h1 th:text="|Evolucao — ${aluno.nomeCompleto}|">Evolucao</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Lista</a>
+            <a class="btn-nav" th:href="@{/reforco/alunos/{id}(id=${aluno.id})}">Detalhe / atividades</a>
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+
+    <section class="card">
+        <h2>Resumo por estado</h2>
+        <p class="muted">Distribuicao atual das atividades deste aluno (Lucilene).</p>
+        <div class="evolucao-cards">
+            <div class="evolucao-card evolucao-card--afazer">
+                <span class="evolucao-card__valor" th:text="${evolucao.totalAfazer}">0</span>
+                <span class="evolucao-card__rotulo">A fazer</span>
+            </div>
+            <div class="evolucao-card evolucao-card--fazendo">
+                <span class="evolucao-card__valor" th:text="${evolucao.totalFazendo}">0</span>
+                <span class="evolucao-card__rotulo">Fazendo</span>
+            </div>
+            <div class="evolucao-card evolucao-card--finalizado">
+                <span class="evolucao-card__valor" th:text="${evolucao.totalFinalizado}">0</span>
+                <span class="evolucao-card__rotulo">Finalizadas</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Percepcoes em atividades finalizadas</h2>
+        <p class="muted" th:if="${evolucao.ultimasFinalizadasComPercepcao.isEmpty()}">Ainda nao ha finalizacoes com percepcao registada.</p>
+        <ul class="evolucao-perc-list" th:if="${!evolucao.ultimasFinalizadasComPercepcao.isEmpty()}">
+            <li th:each="a : ${evolucao.ultimasFinalizadasComPercepcao}">
+                <div class="evolucao-perc-meta">
+                    <span th:text="${#temporals.format(a.updatedAt != null ? a.updatedAt : a.createdAt, 'dd/MM/yyyy HH:mm')}">data</span>
+                </div>
+                <div class="evolucao-perc-texto" th:text="${a.texto}">atividade</div>
+                <div class="evolucao-perc-prof" th:text="${a.percepcaoProfessor}">percepcao</div>
+            </li>
+        </ul>
+    </section>
+
+    <section class="card">
+        <h2>Cronologia (todas)</h2>
+        <p class="muted">Da mais recente para a mais antiga.</p>
+        <ul class="act-list" th:if="${!atividades.isEmpty()}">
+            <li th:each="act : ${atividades}">
+                <div class="act-meta">
+                    <span th:class="|act-status act-status--${#strings.toLowerCase(act.status.name())}|"
+                          th:text="${act.status.label}">—</span>
+                    <span th:text="${#temporals.format(act.createdAt, 'dd/MM/yyyy')}">data</span>
+                </div>
+                <div th:text="${act.texto}">texto</div>
+            </li>
+        </ul>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+</body>
+</html>

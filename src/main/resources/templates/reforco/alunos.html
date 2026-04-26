@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reforco Aces — Alunos</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
     <link rel="stylesheet" th:href="@{/css/reforco.css}">
 </head>
 <body>
@@ -34,6 +35,13 @@
         <a class="btn-nav" href="/reforco/alunos/novo">Cadastrar novo aluno</a>
     </section>
 
+    <form method="get" action="/reforco/alunos" class="card fluxo-filtros-form" style="margin-top:16px;">
+        <label for="filtroNomeAlunos">Filtrar por nome</label>
+        <input id="filtroNomeAlunos" type="search" name="filtroNome" th:value="${filtroNomeAluno}" placeholder="Parte do nome" style="min-width:220px;padding:8px;border-radius:8px;border:1px solid #cbd5e1;">
+        <button type="submit" class="btn-nav">Filtrar</button>
+        <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Limpar</a>
+    </form>
+
     <section class="card" style="margin-top: 16px;">
         <h2>Lista</h2>
         <p th:if="${alunos.isEmpty()}" class="muted">Nenhum aluno cadastrado.</p>
@@ -43,7 +51,8 @@
                 <th>Nome</th>
                 <th>Idade</th>
                 <th>Escolaridade</th>
-                <th>PCD</th>
+                <th>PCD / condicao</th>
+                <th>Sexo</th>
                 <th>Acoes</th>
             </tr>
             </thead>
@@ -52,10 +61,13 @@
                 <td th:text="${a.nomeCompleto}">Nome</td>
                 <td th:text="${a.idade}">0</td>
                 <td th:text="${a.escolaridade.label}">—</td>
-                <td th:text="${a.pcd} ? 'Sim' : 'Nao'">Nao</td>
+                <td th:text="${a.tipoPcd.label}">Nao e PCD</td>
+                <td th:text="${a.sexo != null ? a.sexo.label : '—'}">—</td>
                 <td>
                     <a class="btn-nav btn-nav--secondary" style="min-height:36px;padding:6px 12px;font-size:0.8rem;"
                        th:href="@{/reforco/alunos/{id}(id=${a.id})}">Detalhe / atividades</a>
+                    <a class="btn-nav" style="min-height:36px;padding:6px 12px;font-size:0.8rem;"
+                       th:href="@{/reforco/alunos/{id}/evolucao(id=${a.id})}">Evolucao</a>
                     <a class="btn-nav btn-nav--secondary" style="min-height:36px;padding:6px 12px;font-size:0.8rem;"
                        th:href="@{/reforco/alunos/{id}/editar(id=${a.id})}">Editar</a>
                 </td>

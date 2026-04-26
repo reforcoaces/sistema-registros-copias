@@ -10,17 +10,23 @@ public class MovimentoFluxoLinha {
     private String descricao;
     private BigDecimal valor;
     private String detalhe;
+    private boolean pendente;
 
     public MovimentoFluxoLinha() {
     }
 
     public MovimentoFluxoLinha(String id, LocalDateTime dataHora, boolean saida, String descricao, BigDecimal valor, String detalhe) {
+        this(id, dataHora, saida, descricao, valor, detalhe, false);
+    }
+
+    public MovimentoFluxoLinha(String id, LocalDateTime dataHora, boolean saida, String descricao, BigDecimal valor, String detalhe, boolean pendente) {
         this.id = id;
         this.dataHora = dataHora;
         this.saida = saida;
         this.descricao = descricao;
         this.valor = valor;
         this.detalhe = detalhe;
+        this.pendente = pendente;
     }
 
     public String getId() {
@@ -45,5 +51,9 @@ public class MovimentoFluxoLinha {
 
     public String getDetalhe() {
         return detalhe;
+    }
+
+    public boolean isPendente() {
+        return pendente;
     }
 }

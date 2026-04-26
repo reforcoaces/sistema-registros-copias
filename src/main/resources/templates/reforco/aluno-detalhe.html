@@ -14,6 +14,7 @@
     <header class="app-toolbar" th:if="${currentUser != null}">
         <nav class="app-toolbar__nav">
             <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Lista de alunos</a>
+            <a class="btn-nav" th:href="@{/reforco/alunos/{id}/evolucao(id=${aluno.id})}">Dashboard / evolucao</a>
             <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
             <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
         </nav>
@@ -23,24 +24,59 @@
         <h2>Dados</h2>
         <p><strong>Idade:</strong> <span th:text="${aluno.idade}">0</span></p>
         <p><strong>Escolaridade:</strong> <span th:text="${aluno.escolaridade.label}">—</span></p>
-        <p><strong>PCD:</strong> <span th:text="${aluno.pcd} ? 'Sim' : 'Nao'">Nao</span></p>
+        <p><strong>PCD:</strong> <span th:text="${aluno.tipoPcd.label}">Nao e PCD</span></p>
+        <p th:if="${aluno.sexo != null}"><strong>Sexo:</strong> <span th:text="${aluno.sexo.label}">—</span></p>
+        <p th:if="${aluno.nomePai != null and !aluno.nomePai.isEmpty()}"><strong>Nome do pai:</strong> <span th:text="${aluno.nomePai}">—</span></p>
+        <p th:if="${aluno.nomeMae != null and !aluno.nomeMae.isEmpty()}"><strong>Nome da mae:</strong> <span th:text="${aluno.nomeMae}">—</span></p>
+        <p th:if="${aluno.telefoneContato != null and !aluno.telefoneContato.isEmpty()}"><strong>Telefone:</strong> <span th:text="${aluno.telefoneContato}">—</span></p>
+        <p th:if="${aluno.objetivoReforco != null and !aluno.objetivoReforco.isEmpty()}"><strong>Objetivo do reforco:</strong> <span th:text="${aluno.objetivoReforco}">—</span></p>
+        <p th:if="${aluno.expectativaPais != null and !aluno.expectativaPais.isEmpty()}"><strong>Expectativa dos pais:</strong> <span th:text="${aluno.expectativaPais}">—</span></p>
+        <hr style="margin:14px 0;border:none;border-top:1px solid #e2e8f0;">
+        <h3 style="margin:0 0 8px;font-size:1rem;">Mensalidade</h3>
+        <p th:unless="${alunoTemMensalidade}" class="muted">Sem valor de mensalidade registado no cadastro.</p>
+        <th:block th:if="${alunoTemMensalidade}">
+            <p><strong>Valor:</strong> <span th:text="${'R$ ' + #numbers.formatDecimal(aluno.valorMensalidade, 1, 2)}">—</span></p>
+            <p th:if="${aluno.diaPagamentoPreferido != null}"><strong>Dia combinado:</strong> <span th:text="${aluno.diaPagamentoPreferido}">—</span></p>
+            <p th:if="${aluno.recorrenciaMensalidade != null}"><strong>Recorrencia:</strong> <span th:text="${aluno.recorrenciaMensalidade.label}">—</span></p>
+            <p th:if="${aluno.proximaCobrancaPrevista != null}"><strong>Proxima cobranca automatica prevista:</strong>
+                <span th:text="${#temporals.format(aluno.proximaCobrancaPrevista, 'dd/MM/yyyy')}">—</span></p>
+        </th:block>
+        <p><strong>Total confirmado (pagamentos aluno, ultimos 12 meses):</strong>
+            <span th:text="${'R$ ' + #numbers.formatDecimal(totalPagamentosAluno12Meses, 1, 2)}">R$ 0</span>
+            <span class="muted" style="font-size:0.85rem;"> — ver <a th:href="@{/controle-fluxo/entradas(alunoId=${aluno.id}, situacao='confirmada')}">entradas no fluxo</a></span>
+        </p>
         <p><a class="btn-nav btn-nav--secondary" style="display:inline-flex;margin-top:8px;"
               th:href="@{/reforco/alunos/{id}/editar(id=${aluno.id})}">Editar cadastro</a></p>
     </section>
 
     <div th:if="${param.atividadeOk}" class="app-feedback app-feedback--ok" role="status" id="atividade-ok-toast">Atividade registada.</div>
+    <div th:if="${param.estadoOk}" class="app-feedback app-feedback--ok" role="status" id="estado-ok-toast">Estado atualizado.</div>
+
+    <div class="error-box" th:if="${erroAtividade}" th:text="${erroAtividade}"></div>
+    <div class="error-box" th:if="${erroEstadoAtividade}" th:text="${erroEstadoAtividade}"></div>
+    <div class="error-box" th:if="${mensagemErroEstado != null}" th:text="${mensagemErroEstado}"></div>
 
     <section class="card">
         <h2>Nova atividade</h2>
-        <p class="muted">Data e hora sao registadas automaticamente. Professora: Lucilene Ramos.</p>
-        <form th:action="@{/reforco/alunos/{id}/atividades(id=${aluno.id})}" method="post" th:object="${atividadeForm}">
+        <p class="muted">Professora: Lucilene Ramos. Se marcar como <strong>Finalizado</strong>, descreva a sua percepcao sobre o desenvolvimento do aluno.</p>
+        <form th:action="@{/reforco/alunos/{id}/atividades(id=${aluno.id})}" method="post" th:object="${atividadeForm}" id="form-nova-atividade">
             <div class="error-box" th:if="${#fields.hasAnyErrors()}">
                 <ul>
                     <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
                 </ul>
             </div>
             <label for="texto">Descricao da atividade</label>
-            <textarea id="texto" rows="4" th:field="*{texto}" required placeholder="Ex.: Revisao de fracoes — exercicios da pagina 42."></textarea>
+            <textarea id="texto" rows="3" th:field="*{texto}" required placeholder="Ex.: Revisao de fracoes — exercicios da pagina 42."></textarea>
+
+            <label for="statusNova">Estado</label>
+            <select id="statusNova" th:field="*{status}" required>
+                <option th:each="st : ${statusesAtividade}" th:value="${st}" th:text="${st.label}">—</option>
+            </select>
+
+            <label for="percepcaoNova">Percepcao (Lucilene) — obrigatoria se finalizada</label>
+            <textarea id="percepcaoNova" rows="3" th:field="*{percepcaoProfessor}" maxlength="2000"
+                      placeholder="Ao finalizar: como foi o desempenho, dificuldades, evolucao observada…"></textarea>
+
             <div class="actions" style="margin-top:10px;">
                 <button type="submit" class="btn-nav">Registar atividade</button>
             </div>
@@ -51,13 +87,42 @@
         <h2>Historico de atividades</h2>
         <p th:if="${atividades.isEmpty()}" class="muted">Ainda nao ha registos.</p>
         <ul class="act-list" th:if="${!atividades.isEmpty()}">
-            <li th:each="act : ${atividades}">
+            <li th:each="act : ${atividades}" class="act-item">
                 <div class="act-meta">
+                    <span th:class="|act-status act-status--${#strings.toLowerCase(act.status.name())}|"
+                          th:text="${act.status.label}">Estado</span>
                     <span th:text="${#temporals.format(act.createdAt, 'dd/MM/yyyy HH:mm')}">data</span>
+                    <span th:if="${act.updatedAt != null}">
+                        &middot; atualizado <span th:text="${#temporals.format(act.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </span>
                     &mdash;
                     <span th:text="${act.professora}">Prof.</span>
                 </div>
-                <div th:text="${act.texto}">texto</div>
+                <div class="act-texto" th:text="${act.texto}">texto</div>
+                <div class="act-percepcao" th:if="${act.percepcaoProfessor != null and !act.percepcaoProfessor.isEmpty()}">
+                    <strong>Percepcao (Lucilene):</strong>
+                    <span th:text="${act.percepcaoProfessor}"></span>
+                </div>
+
+                <form class="act-update-form" method="post"
+                      th:action="@{/reforco/alunos/{aid}/atividades/{tid}/estado(aid=${aluno.id},tid=${act.id})}">
+                    <div class="act-update-form__row">
+                        <label th:for="|status-${act.id}|">Atualizar estado</label>
+                        <select th:id="|status-${act.id}|" name="estadoForm.status" required class="act-update-form__select">
+                            <option th:each="st : ${statusesAtividade}"
+                                    th:value="${st}"
+                                    th:selected="${act.status == st}"
+                                    th:text="${st.label}">—</option>
+                        </select>
+                    </div>
+                    <div class="act-update-form__row">
+                        <label th:for="|perc-${act.id}|">Percepcao (se finalizar)</label>
+                        <textarea th:id="|perc-${act.id}|" name="estadoForm.percepcaoProfessor" rows="2" maxlength="2000"
+                                  th:text="${act.percepcaoProfessor != null ? act.percepcaoProfessor : ''}"
+                                  placeholder="Obrigatorio ao escolher Finalizado"></textarea>
+                    </div>
+                    <button type="submit" class="btn-nav btn-nav--secondary" style="min-height:38px;margin-top:8px;">Guardar alteracao</button>
+                </form>
             </li>
         </ul>
     </section>
@@ -66,11 +131,26 @@
 <script th:src="@{/js/app-ui.js}" defer></script>
 <script>
     (function () {
-        var el = document.getElementById('atividade-ok-toast');
-        if (el) {
-            setTimeout(function () {
-                el.remove();
-            }, 4500);
+        function removeToast(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                setTimeout(function () {
+                    el.remove();
+                }, 4500);
+            }
+        }
+        removeToast('atividade-ok-toast');
+        removeToast('estado-ok-toast');
+
+        var selNova = document.getElementById('statusNova');
+        var taNova = document.getElementById('percepcaoNova');
+        if (selNova && taNova) {
+            function syncNova() {
+                var fin = selNova.value === 'FINALIZADO';
+                taNova.required = fin;
+            }
+            selNova.addEventListener('change', syncNova);
+            syncNova();
         }
     })();
 </script>

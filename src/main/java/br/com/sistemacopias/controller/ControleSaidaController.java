@@ -71,8 +71,9 @@ public class ControleSaidaController {
         return "redirect:/controle-fluxo/saidas?sucesso=1";
     }
 
-    private static void prepararFormSaida(Model model, boolean editMode) {
+    private void prepararFormSaida(Model model, boolean editMode) {
         model.addAttribute("categoriasSaida", CategoriaSaidaRecorrente.values());
         model.addAttribute("editMode", editMode);
+        model.addAttribute("origensCompra", controleFluxoService.listarOrigensCompraParaUi());
     }
 }

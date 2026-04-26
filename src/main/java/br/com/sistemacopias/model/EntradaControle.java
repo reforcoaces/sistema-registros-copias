@@ -13,6 +13,10 @@ public class EntradaControle {
     private BigDecimal valor;
     private MeioPagamentoEntrada meioPagamento;
     private String meioPagamentoOutro;
+    /** Null no JSON antigo: trata-se como {@link SituacaoEntrada#CONFIRMADA}. */
+    private SituacaoEntrada situacao;
+    /** Chave idempotente para parcelas automaticas (ex.: INS-{alunoId}, COB-{alunoId}-{yyyy-MM-dd}). */
+    private String referenciaCobranca;
 
     public EntradaControle() {
     }
@@ -24,16 +28,57 @@ public class EntradaControle {
             BigDecimal valor,
             MeioPagamentoEntrada meioPagamento,
             String meioPagamentoOutro) {
+        return nova(tipo, alunoId, descricaoLivre, valor, meioPagamento, meioPagamentoOutro,
+                SituacaoEntrada.CONFIRMADA, null, LocalDateTime.now());
+    }
+
+    public static EntradaControle nova(
+            TipoEntradaControle tipo,
+            String alunoId,
+            String descricaoLivre,
+            BigDecimal valor,
+            MeioPagamentoEntrada meioPagamento,
+            String meioPagamentoOutro,
+            SituacaoEntrada situacao,
+            String referenciaCobranca,
+            LocalDateTime dataHoraRegistro) {
         EntradaControle e = new EntradaControle();
         e.id = UUID.randomUUID().toString();
-        e.dataHoraRegistro = LocalDateTime.now();
+        e.dataHoraRegistro = dataHoraRegistro != null ? dataHoraRegistro : LocalDateTime.now();
         e.tipo = tipo;
         e.alunoId = alunoId;
         e.descricaoLivre = descricaoLivre;
         e.valor = valor;
         e.meioPagamento = meioPagamento;
         e.meioPagamentoOutro = meioPagamentoOutro;
+        e.situacao = situacao != null ? situacao : SituacaoEntrada.CONFIRMADA;
+        e.referenciaCobranca = referenciaCobranca;
         return e;
+    }
+
+    /** Mensalidade gerada pelo sistema (pendente ate confirmacao). */
+    public static EntradaControle mensalidadeAutomatica(
+            String alunoId,
+            BigDecimal valor,
+            LocalDateTime dataHoraRegistro,
+            String referenciaCobranca,
+            String notaOpcional) {
+        return nova(
+                TipoEntradaControle.PAGAMENTO_ALUNO,
+                alunoId,
+                notaOpcional != null ? notaOpcional : "",
+                valor,
+                MeioPagamentoEntrada.A_CONFIRMAR,
+                null,
+                SituacaoEntrada.PENDENTE,
+                referenciaCobranca,
+                dataHoraRegistro);
+    }
+
+    public void migrarCamposLegadosSeNecessario() {
+        if (situacao == null) {
+            situacao = SituacaoEntrada.CONFIRMADA;
+        }
     }
 
     public String getId() {
@@ -98,6 +143,27 @@ public class EntradaControle {
 
     public void setMeioPagamentoOutro(String meioPagamentoOutro) {
         this.meioPagamentoOutro = meioPagamentoOutro;
+    }
+
+    public SituacaoEntrada getSituacao() {
+        return situacao != null ? situacao : SituacaoEntrada.CONFIRMADA;
+    }
+
+    public void setSituacao(SituacaoEntrada situacao) {
+        this.situacao = situacao;
+    }
+
+    public String getReferenciaCobranca() {
+        return referenciaCobranca;
+    }
+
+    public void setReferenciaCobranca(String referenciaCobranca) {
+        this.referenciaCobranca = referenciaCobranca;
+    }
+
+    public boolean isEntradaAutomaticaMensalidade() {
+        return referenciaCobranca != null
+                && (referenciaCobranca.startsWith("INS-") || referenciaCobranca.startsWith("COB-"));
     }
 
     /** Rotulo do meio para listagens (inclui texto se OUTRO). */

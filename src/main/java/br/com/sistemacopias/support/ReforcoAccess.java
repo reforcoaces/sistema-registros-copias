@@ -28,4 +28,13 @@ public final class ReforcoAccess {
         }
         return USERNAME_LUCILENE.equalsIgnoreCase(user.getUsername().trim());
     }
+
+    public static boolean isAdmin(AppUser user) {
+        return user != null && user.getRole() == UserRole.ADMIN;
+    }
+
+    /** Administrador ou utilizadora Lucilene: podem ajustar horarios da agenda. */
+    public static boolean podeEditarHorarioAgenda(AppUser user) {
+        return podeLucileneOuAdmin(user);
+    }
 }

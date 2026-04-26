@@ -46,14 +46,24 @@
                         th:text="${a}"></option>
             </select>
         </label>
+        <label>Aluno <span class="muted" style="font-weight:400;">(opcional)</span>
+            <select name="alunoId">
+                <option value="">Todos</option>
+                <option th:each="a : ${alunosFiltro}" th:value="${a.id}"
+                        th:selected="${alunoFiltroSelecionado != null and alunoFiltroSelecionado == a.id}"
+                        th:text="${a.nomeCompleto}">Nome</option>
+            </select>
+        </label>
         <button type="submit" class="btn-nav">Atualizar</button>
     </form>
 
     <p class="muted" style="margin-bottom:12px;">
         Mes de referencia:
         <strong th:text="${mesReferenciaLabel}">04/2026</strong>
+        <span th:if="${fluxo.filtroAlunoNome != null}"> — filtro aluno: <strong th:text="${fluxo.filtroAlunoNome}">Nome</strong></span>
         — Saidas contabilizadas pela <strong>data da compra/despesa</strong>;
         entradas manuais e pedidos de copias pela <strong>data do registo</strong> no mes.
+        O <strong>saldo</strong> usa entradas manuais <strong>confirmadas</strong> e pedidos (pendentes nao entram).
     </p>
 
     <div class="dash-grid">
@@ -62,26 +72,35 @@
             <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalSaidasMes, 1, 2)}">R$ 0</span>
         </div>
         <div class="dash-card dash-green">
-            <span class="dash-label">Entradas manuais (mes)</span>
-            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasManuaisMes, 1, 2)}">R$ 0</span>
+            <span class="dash-label">Entradas manuais confirmadas</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasManuaisConfirmadasMes, 1, 2)}">R$ 0</span>
+        </div>
+        <div class="dash-card dash-amber" style="background:linear-gradient(135deg,#fef3c7,#fde68a);color:#78350f;">
+            <span class="dash-label">Entradas manuais pendentes</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasManuaisPendentesMes, 1, 2)}">R$ 0</span>
         </div>
         <div class="dash-card dash-teal">
             <span class="dash-label">Pedidos copias (mes)</span>
             <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasPedidosMes, 1, 2)}">R$ 0</span>
         </div>
         <div class="dash-card dash-blue">
-            <span class="dash-label">Total entradas (mes)</span>
-            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasMes, 1, 2)}">R$ 0</span>
+            <span class="dash-label">Entradas efetivas (mes)</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasEfetivasMes, 1, 2)}">R$ 0</span>
         </div>
         <div class="dash-card dash-purple">
-            <span class="dash-label">Saldo (entradas - saidas)</span>
+            <span class="dash-label">Saldo (efetivas - saidas)</span>
             <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.saldoMes, 1, 2)}">R$ 0</span>
+        </div>
+        <div class="dash-card dash-blue" style="grid-column:1/-1;" th:if="${fluxo.filtroAlunoId != null}">
+            <span class="dash-label">Entradas confirmadas deste aluno no mes</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasAlunoFiltradoConfirmadasMes, 1, 2)}">R$ 0</span>
         </div>
     </div>
 
     <form method="get" class="card dash-vista-form" th:action="@{/controle-fluxo/dashboard}">
         <input type="hidden" name="mes" th:value="${mesSelecionado}">
         <input type="hidden" name="ano" th:value="${anoSelecionado}">
+        <input type="hidden" name="alunoId" th:value="${alunoFiltroSelecionado != null ? alunoFiltroSelecionado : ''}">
         <label for="vistaFluxo">Vista complementar <span class="muted" style="font-weight:400;">(opcional)</span></label>
         <select id="vistaFluxo" name="vistaExtra" onchange="this.form.submit()">
             <option value="nenhuma" th:selected="${vistaExtra == 'nenhuma'}">Nenhuma</option>
@@ -139,7 +158,8 @@
                 <tr th:each="m : ${fluxo.movimentosDoMes}">
                     <td>
                         <span class="tag-saida" th:if="${m.saida}">Saida</span>
-                        <span class="tag-entrada" th:unless="${m.saida}">Entrada</span>
+                        <span class="tag-entrada" th:if="${!m.saida and !m.pendente}">Entrada</span>
+                        <span class="tag-pendente" th:if="${!m.saida and m.pendente}">Entrada pendente</span>
                     </td>
                     <td th:text="${#temporals.format(m.dataHora, 'dd/MM/yyyy HH:mm')}">—</td>
                     <td th:text="${m.descricao}">—</td>
