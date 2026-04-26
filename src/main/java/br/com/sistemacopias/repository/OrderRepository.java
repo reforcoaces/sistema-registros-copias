@@ -1,6 +1,7 @@
 package br.com.sistemacopias.repository;
 
 import br.com.sistemacopias.model.OrderRecord;
+import br.com.sistemacopias.support.DataFileBackupService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -20,9 +21,13 @@ import java.util.Optional;
 public class OrderRepository {
     private final Path dataFilePath;
     private final ObjectMapper objectMapper;
+    private final DataFileBackupService backupService;
 
-    public OrderRepository(@Value("${app.storage.path:data/orders.json}") String storagePath) {
+    public OrderRepository(
+            @Value("${app.storage.path:data/orders.json}") String storagePath,
+            DataFileBackupService backupService) {
         this.dataFilePath = Path.of(storagePath).toAbsolutePath().normalize();
+        this.backupService = backupService;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -77,6 +82,7 @@ public class OrderRepository {
     private void saveAllInternal(List<OrderRecord> allOrders) {
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(dataFilePath.toFile(), allOrders);
+            backupService.mirrorAfterWrite(dataFilePath);
         } catch (IOException e) {
             throw new IllegalStateException("Erro ao salvar pedido", e);
         }

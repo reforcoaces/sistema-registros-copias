@@ -10,15 +10,22 @@
 <body>
 <main class="dashboard-wrap">
     <h1>Dashboard</h1>
-    <p th:if="${currentUser != null}">
-        Usuario: <strong th:text="${currentUser.username}"></strong> |
-        <a href="/">Novo atendimento</a> |
-        <a href="/pedidos">Pedidos</a> |
-        <a href="/relatorios">Relatorios</a> |
-        <a th:if="${currentUser.role.name() == 'ADMIN'}" href="/importacao">Importacao</a><span th:if="${currentUser.role.name() == 'ADMIN'}"> | </span>
-        <a th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a><span th:if="${currentUser.role.name() == 'ADMIN'}"> | </span>
-        <a href="/logout">Sair</a>
-    </p>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">Voltar</button>
+            <a class="btn-nav btn-nav--secondary" th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row" aria-label="Atalhos" th:if="${currentUser != null}">
+        <a class="btn-nav btn-nav--secondary" href="/">Novo atendimento</a>
+        <a class="btn-nav" href="/pedidos">Historico</a>
+        <a class="btn-nav" href="/relatorios">Relatorios</a>
+        <a class="btn-nav btn-nav--muted" th:if="${currentUser.role.name() == 'ADMIN'}" href="/importacao">Importacao retroativa</a>
+    </nav>
 
     <div class="dash-grid">
         <div class="dash-card dash-blue">

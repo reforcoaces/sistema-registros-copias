@@ -9,7 +9,11 @@
 <body>
 <main class="container">
     <h1>Editar Pedido Finalizado</h1>
-    <p><a href="/pedidos">Voltar</a> | <a href="/dashboard">Dashboard</a> | <a href="/logout">Sair</a></p>
+    <nav class="nav-row" aria-label="Atalhos">
+        <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/pedidos'; }">Voltar</button>
+        <a class="btn-nav" href="/dashboard">Dashboard</a>
+        <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+    </nav>
 
     <section class="card error-box" th:if="${errorMessage}" th:text="${errorMessage}"></section>
 

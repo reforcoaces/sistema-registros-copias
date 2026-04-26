@@ -9,26 +9,30 @@
 <body>
 <main class="container">
     <h1>Novo Atendimento</h1>
-    <p th:if="${currentUser != null}">
-        Usuario: <strong th:text="${currentUser.username}"></strong> |
-        Perfil: <strong th:text="${currentUser.role}"></strong> |
-        <a th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a><span th:if="${currentUser.role.name() == 'ADMIN'}"> | </span><a href="/logout">Sair</a>
-    </p>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+            <span>Perfil: <strong th:text="${currentUser.role}"></strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">Voltar</button>
+            <a class="btn-nav btn-nav--secondary" th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
 
     <section class="card">
-        <h2>Tabela de Precos</h2>
-        <ul>
-            <li>Impressao Preto e Branco: R$ 2,00</li>
-            <li>Impressao Colorida: R$ 3,00</li>
-            <li>Copia Preto e Branco: R$ 1,00</li>
-            <li>Copia Colorida: R$ 2,00</li>
-            <li>Digitalizacao: R$ 1,00</li>
-            <li>Plastificacao: R$ 5,00</li>
+        <h2>Tabela de precos</h2>
+        <ul class="price-list">
+            <li class="price-list__row" th:each="p : ${productTypes}">
+                <span class="price-list__name" th:text="${p.descricao}">Produto</span>
+                <span class="price-list__price" th:text="${'R$ ' + #numbers.formatDecimal(p.unitPrice, 1, 2)}">R$ 0,00</span>
+            </li>
         </ul>
     </section>
 
     <section class="card">
-        <form th:object="${orderForm}" method="post">
+        <form th:object="${orderForm}" method="post" id="order-form" th:attr="data-product-prices=${productPricesJson}">
             <div class="error-box" th:if="${#fields.hasAnyErrors()}">
                 <p>Corrija os erros abaixo:</p>
                 <ul>
@@ -42,7 +46,7 @@
                 <strong>Acoes</strong>
             </div>
 
-            <div class="grid row" th:each="item, stat : *{items}">
+            <div class="grid row order-row" th:each="item, stat : *{items}">
                 <select th:field="*{items[__${stat.index}__].productType}">
                     <option value="">Selecione</option>
                     <option th:each="product : ${productTypes}"
@@ -70,23 +74,24 @@
 
             <div class="total-box">
                 <span>Total do atendimento:</span>
-                <strong th:text="${'R$ ' + #numbers.formatDecimal(total, 1, 2)}">R$ 0,00</strong>
+                <strong id="total-atendimento" th:text="${'R$ ' + #numbers.formatDecimal(total, 1, 2)}">R$ 0,00</strong>
             </div>
 
             <div class="actions">
                 <button type="submit" formaction="/pedido/adicionar-item" class="secondary">Adicionar mais produto</button>
                 <button type="submit" formaction="/pedido/recalcular">Atualizar total</button>
-                <button type="submit" formaction="/pedido/finalizar">Finalizar pedido</button>
+                <button type="submit" formaction="/pedido/finalizar" class="btn-success">Finalizar pedido</button>
             </div>
         </form>
     </section>
 
-    <p>
-        <a href="/dashboard">Dashboard</a> |
-        <a href="/pedidos">Ver historico de pedidos</a> |
-        <a href="/relatorios">Ver relatorios</a>
-        <span th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}"> | <a href="/importacao">Importacao retroativa</a></span>
-    </p>
+    <nav class="nav-row" aria-label="Atalhos">
+        <a class="btn-nav" href="/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/pedidos">Ver historico de pedidos</a>
+        <a class="btn-nav" href="/relatorios">Ver relatorios</a>
+        <a class="btn-nav btn-nav--muted" th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" href="/importacao">Importacao retroativa</a>
+    </nav>
 </main>
+<script th:src="@{/js/pedido-form-total.js}" defer></script>
 </body>
 </html>

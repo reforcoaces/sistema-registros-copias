@@ -1,6 +1,7 @@
 package br.com.sistemacopias.repository;
 
 import br.com.sistemacopias.model.AppUser;
+import br.com.sistemacopias.support.DataFileBackupService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +18,13 @@ import java.util.Optional;
 public class UserRepository {
     private final Path userFilePath;
     private final ObjectMapper objectMapper;
+    private final DataFileBackupService backupService;
 
-    public UserRepository(@Value("${app.users.path:data/users.json}") String usersPath) {
-        this.userFilePath = Path.of(usersPath);
+    public UserRepository(
+            @Value("${app.users.path:data/users.json}") String usersPath,
+            DataFileBackupService backupService) {
+        this.userFilePath = Path.of(usersPath).toAbsolutePath().normalize();
+        this.backupService = backupService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -46,6 +51,7 @@ public class UserRepository {
     public synchronized void saveAll(List<AppUser> users) {
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(userFilePath.toFile(), users);
+            backupService.mirrorAfterWrite(userFilePath);
         } catch (IOException e) {
             throw new IllegalStateException("Erro ao salvar usuarios", e);
         }

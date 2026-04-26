@@ -53,3 +53,4 @@ obj/
 # --- Dados locais (nao versionar pedidos nem credenciais) ---
 data/orders.json
 data/users.json
+data/.backup-sync-state.json

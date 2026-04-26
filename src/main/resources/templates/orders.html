@@ -9,19 +9,25 @@
 <body>
 <main class="container">
     <h1>Historico de Pedidos</h1>
-    <p th:if="${currentUser != null}">
-        Usuario: <strong th:text="${currentUser.username}"></strong> |
-        Perfil: <strong th:text="${currentUser.role}"></strong> |
-        <a th:if="${isAdmin}" href="/usuarios">Usuarios</a><span th:if="${isAdmin}"> | </span><a href="/logout">Sair</a>
-    </p>
-    <p>
-        <a href="/">Registrar novo atendimento</a> |
-        <a href="/dashboard">Dashboard</a> |
-        <a href="/relatorios">Ver relatorios</a> |
-        <a th:if="${isAdmin}" href="/importacao">Importacao retroativa</a><span th:if="${isAdmin}"> | </span>
-        <a th:href="@{/pedidos/export.csv(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar CSV</a> |
-        <a th:href="@{/pedidos/export.pdf(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar PDF</a>
-    </p>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+            <span>Perfil: <strong th:text="${currentUser.role}"></strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">Voltar</button>
+            <a class="btn-nav btn-nav--secondary" th:if="${isAdmin}" href="/usuarios">Usuarios</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row" aria-label="Atalhos">
+        <a class="btn-nav btn-nav--secondary" href="/">Novo atendimento</a>
+        <a class="btn-nav" href="/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/relatorios">Ver relatorios</a>
+        <a class="btn-nav btn-nav--muted" th:if="${isAdmin}" href="/importacao">Importacao retroativa</a>
+        <a class="btn-nav btn-nav--export" th:href="@{/pedidos/export.csv(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar CSV</a>
+        <a class="btn-nav btn-nav--export" th:href="@{/pedidos/export.pdf(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar PDF</a>
+    </nav>
 
     <section class="card">
         <h2>Filtrar pedidos</h2>
@@ -40,7 +46,7 @@
             </div>
             <div class="filter-actions">
                 <button type="submit">Aplicar filtro</button>
-                <a class="secondary-link" href="/pedidos">Limpar</a>
+                <a class="btn-nav btn-nav--secondary" href="/pedidos">Limpar</a>
             </div>
         </form>
         <p th:if="${filterDataInicio != '' or filterDataFim != '' or filterPagamento != ''}">

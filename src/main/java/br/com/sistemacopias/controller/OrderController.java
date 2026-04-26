@@ -9,14 +9,10 @@ import br.com.sistemacopias.model.PaymentMethod;
 import br.com.sistemacopias.model.OrderRecord;
 import br.com.sistemacopias.model.ProductType;
 import br.com.sistemacopias.model.UserRole;
+import br.com.sistemacopias.service.OrderPdfExportService;
 import br.com.sistemacopias.service.OrderService;
 import br.com.sistemacopias.service.RetroactiveImportService;
 import jakarta.validation.Valid;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -30,22 +26,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.http.HttpSession;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.StringJoiner;
 
 @Controller
 public class OrderController {
     private final OrderService orderService;
     private final RetroactiveImportService retroactiveImportService;
+    private final OrderPdfExportService orderPdfExportService;
 
-    public OrderController(OrderService orderService, RetroactiveImportService retroactiveImportService) {
+    public OrderController(
+            OrderService orderService,
+            RetroactiveImportService retroactiveImportService,
+            OrderPdfExportService orderPdfExportService) {
         this.orderService = orderService;
         this.retroactiveImportService = retroactiveImportService;
+        this.orderPdfExportService = orderPdfExportService;
     }
 
     @GetMapping("/")
@@ -222,51 +222,30 @@ public class OrderController {
                                              @RequestParam(required = false) String pagamento) throws IOException {
         List<OrderRecord> orders = orderService.listOrdersFiltered(
                 parseLocalDate(dataInicio), parseLocalDate(dataFim), parsePaymentMethod(pagamento));
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-        try (PDDocument document = new PDDocument()) {
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
-            PDPageContentStream stream = new PDPageContentStream(document, page);
-
-            float y = 800;
-            stream.beginText();
-            stream.setFont(PDType1Font.HELVETICA_BOLD, 14);
-            stream.newLineAtOffset(50, y);
-            stream.showText("Relatorio de Pedidos");
-            stream.endText();
-            y -= 25;
-
-            stream.setFont(PDType1Font.HELVETICA, 10);
-            for (OrderRecord order : orders) {
-                if (y < 80) {
-                    stream.close();
-                    page = new PDPage(PDRectangle.A4);
-                    document.addPage(page);
-                    stream = new PDPageContentStream(document, page);
-                    y = 800;
-                    stream.setFont(PDType1Font.HELVETICA, 10);
-                }
-
-                writeLine(stream, 50, y, "Pedido " + order.getId() + " | " + formatter.format(order.getCreatedAt())
-                        + " | " + order.getPaymentMethod().getDescricao() + " | Total R$ " + order.getTotalAmount());
-                y -= 14;
-                for (var item : order.getItems()) {
-                    writeLine(stream, 70, y, item.getProductType().getDescricao() + " | Qtd " + item.getQuantity()
-                            + " | Unit R$ " + item.getUnitPrice() + " | Item R$ " + item.getTotal());
-                    y -= 12;
-                }
-                y -= 8;
-            }
-            stream.close();
-            document.save(output);
-        }
-
+        byte[] pdf = orderPdfExportService.build(orders, buildPdfFilterSummary(dataInicio, dataFim, pagamento));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename("pedidos.pdf").build().toString())
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(output.toByteArray());
+                .body(pdf);
+    }
+
+    private static String buildPdfFilterSummary(String dataInicio, String dataFim, String pagamento) {
+        if ((dataInicio == null || dataInicio.isBlank())
+                && (dataFim == null || dataFim.isBlank())
+                && (pagamento == null || pagamento.isBlank())) {
+            return "Todos os pedidos (sem filtro de data nem pagamento).";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (dataInicio != null && !dataInicio.isBlank()) {
+            sb.append("Data inicio: ").append(dataInicio).append("; ");
+        }
+        if (dataFim != null && !dataFim.isBlank()) {
+            sb.append("Data fim: ").append(dataFim).append("; ");
+        }
+        if (pagamento != null && !pagamento.isBlank()) {
+            sb.append("Pagamento: ").append(pagamento).append(".");
+        }
+        return sb.toString().trim();
     }
 
     private void prepareFormScreen(Model model, OrderForm form, BigDecimal total) {
@@ -274,13 +253,15 @@ public class OrderController {
         model.addAttribute("productTypes", ProductType.values());
         model.addAttribute("paymentMethods", PaymentMethod.values());
         model.addAttribute("total", total);
+        model.addAttribute("productPricesJson", productPricesJson());
     }
 
-    private void writeLine(PDPageContentStream stream, float x, float y, String text) throws IOException {
-        stream.beginText();
-        stream.newLineAtOffset(x, y);
-        stream.showText(text);
-        stream.endText();
+    private static String productPricesJson() {
+        StringJoiner sj = new StringJoiner(",", "{", "}");
+        for (ProductType p : ProductType.values()) {
+            sj.add("\"" + p.name() + "\":" + p.getUnitPrice().toPlainString());
+        }
+        return sj.toString();
     }
 
     private static LocalDate parseLocalDate(String value) {
