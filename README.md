@@ -11,6 +11,17 @@ Sistema web em Java para registrar atendimentos de uma copiadora com:
 
 Os dados ficam em **MySQL** (base `sistema_copias` por defeito). Execute o script em `src/main/resources/db/mysql-init.sql` se quiser criar o esquema manualmente, ou deixe o Hibernate atualizar com `spring.jpa.hibernate.ddl-auto=update`. A aplicacao **nao** le nem grava ficheiros JSON em `data/`; se ainda tiveres essa pasta localmente com ficheiros antigos, podes apaga-la.
 
+### Senha e dados sensiveis (nao commitar)
+
+O ficheiro `src/main/resources/application.properties` **nao** deve conter senhas. Tens duas formas comuns:
+
+1. **Variavel de ambiente** (CI, servidor, ou PowerShell antes de correr): `SPRING_DATASOURCE_PASSWORD` (e opcionalmente `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`).
+2. **Ficheiro local na raiz do projeto**: copia `application-local.properties.example` para `application-local.properties`, edita a senha e arranca a app a partir da raiz do repo (o Spring importa esse ficheiro por `spring.config.import`). O nome `application-local.properties` esta no `.gitignore`.
+
+O ficheiro `.env` tambem esta ignorado pelo Git; podes usa-lo com ferramentas que exportam variaveis para o processo antes de `mvn spring-boot:run`, mas o Spring Boot **nao** le `.env` sozinho.
+
+**Nota:** Se uma senha chegou a ser commitada no historico do Git, convém **alterar a senha no MySQL** e usar apenas um dos metodos acima daqui em diante.
+
 ## Produtos e precos
 
 - Impressao Preto e Branco: R$ 2,00

@@ -1,0 +1,12 @@
+# Copie este ficheiro para a raiz do projeto com o nome:
+#   application-local.properties
+# (esse nome esta no .gitignore e nao sera enviado para o Git.)
+#
+# Depois preencha a senha do MySQL. O Spring carrega este ficheiro automaticamente
+# (ver spring.config.import em src/main/resources/application.properties).
+
+spring.datasource.password=ALTERE_PARA_A_SUA_SENHA_MYSQL
+
+# Opcional: descomente se nao usar os valores por defeito em application.properties
+# spring.datasource.url=jdbc:mysql://localhost:3306/sistema_copias?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=America/Sao_Paulo&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+# spring.datasource.username=root
