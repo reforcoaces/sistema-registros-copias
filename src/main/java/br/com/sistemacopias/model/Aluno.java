@@ -1,42 +1,80 @@
 package br.com.sistemacopias.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "reforco_aluno")
 public class Aluno {
+    @Id
+    @Column(length = 36)
     private String id;
+    @Column(name = "nome_completo", nullable = false, length = 300)
     private String nomeCompleto;
+    @Column(nullable = false)
     private int idade;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40)
     private Escolaridade escolaridade;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pcd", nullable = false, length = 40)
     private TipoPcd tipoPcd = TipoPcd.NAO;
 
     /** Opcional */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
     private Sexo sexo;
+    @Column(name = "nome_pai", length = 300)
     private String nomePai;
+    @Column(name = "nome_mae", length = 300)
     private String nomeMae;
+    @Column(name = "telefone_contato", length = 80)
     private String telefoneContato;
+    @Column(name = "objetivo_reforco", columnDefinition = "TEXT")
     private String objetivoReforco;
+    @Column(name = "expectativa_pais", columnDefinition = "TEXT")
     private String expectativaPais;
 
     /** Valor combinado de mensalidade (registado no dia do cadastro quando houver cobranca automatica). */
+    @Column(name = "valor_mensalidade", precision = 19, scale = 2)
     private BigDecimal valorMensalidade;
     /** Dia do mes preferido para cobranca (1 a 31). */
+    @Column(name = "dia_pagamento_preferido")
     private Integer diaPagamentoPreferido;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recorrencia_mensalidade", length = 32)
     private RecorrenciaMensalidade recorrenciaMensalidade;
     /** Proxima data prevista para gerar cobranca automatica (apos confirmacoes). */
+    @Column(name = "proxima_cobranca_prevista")
     private LocalDate proximaCobrancaPrevista;
 
     /** So para ler JSON antigo com campo booleano {@code pcd}; nao e gravado ao salvar. */
     @JsonProperty(value = "pcd", access = JsonProperty.Access.WRITE_ONLY)
+    @Transient
     private Boolean pcdLegado;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     public Aluno() {
+    }
+
+    @PostLoad
+    private void aposCarregar() {
+        migrarCampoPcdLegadoSeNecessario();
+        migrarMensalidadeLegadoSeNecessario();
     }
 
     public static Aluno novo(String nomeCompleto, int idade, Escolaridade escolaridade, TipoPcd tipoPcd) {

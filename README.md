@@ -7,14 +7,9 @@ Sistema web em Java para registrar atendimentos de uma copiadora com:
 - calculo automatico do valor total
 - meio de pagamento (pix, debito, credito, dinheiro)
 
-## Recomendacao de armazenamento inicial
+## Persistencia
 
-Use **JSON** (e nao TXT), porque:
-- mantem estrutura clara de pedidos e itens
-- facilita leitura por codigo Java
-- simplifica migracao futura para banco de dados real
-
-Os dados ficam em `data/orders.json`.
+Os dados ficam em **MySQL** (base `sistema_copias` por defeito). Execute o script em `src/main/resources/db/mysql-init.sql` se quiser criar o esquema manualmente, ou deixe o Hibernate atualizar com `spring.jpa.hibernate.ddl-auto=update`. A aplicacao **nao** le nem grava ficheiros JSON em `data/`; se ainda tiveres essa pasta localmente com ficheiros antigos, podes apaga-la.
 
 ## Produtos e precos
 
@@ -30,7 +25,7 @@ Os dados ficam em `data/orders.json`.
 - Java 17
 - Spring Boot 3
 - Thymeleaf
-- Persistencia em arquivo JSON
+- Persistencia em MySQL (Spring Data JPA)
 
 ## Funcionalidades implementadas
 
@@ -50,20 +45,6 @@ Os dados ficam em `data/orders.json`.
 - Importacao retroativa (somente ADMIN)
 - Filtros por data e pagamento em **Pedidos** e **Relatorios**
 - **Dashboard** com resumo visual (cores)
-- Agendamento: todo dia as **20:00** (America/Sao_Paulo) envia o faturamento do dia por e-mail; no **ultimo dia do mes** as **20:05** envia backup do `orders.json` (se SMTP estiver configurado)
-
-## E-mail (opcional)
-
-Destino padrao: `reforco.aces@gmail.com` (altere com `APP_NOTIFICATION_TO`).
-
-Configure SMTP (exemplo Gmail com senha de app):
-
-- `spring.mail.host=smtp.gmail.com`
-- `spring.mail.port=587`
-- `spring.mail.username=...`
-- `spring.mail.password=...`
-
-Sem `spring.mail.host` a aplicacao sobe normalmente; os envios agendados sao ignorados ate voce configurar o e-mail.
 
 ## Como rodar localmente
 

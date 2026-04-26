@@ -1,22 +1,47 @@
 package br.com.sistemacopias.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "reforco_atividade_aluno")
 public class AtividadeAluno {
     public static final String PROFESSORA_PADRAO = "Lucilene Ramos";
 
+    @Id
+    @Column(length = 36)
     private String id;
+    @Column(name = "aluno_id", nullable = false, length = 36)
     private String alunoId;
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String texto;
+    @Column(length = 200)
     private String professora;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 32)
     private StatusAtividade status = StatusAtividade.FAZENDO;
     /** Percepcao da professora; obrigatorio quando {@link #status} e {@link StatusAtividade#FINALIZADO}. */
+    @Column(name = "percepcao_professor", columnDefinition = "TEXT")
     private String percepcaoProfessor;
 
     public AtividadeAluno() {
+    }
+
+    @PostLoad
+    private void aposCarregar() {
+        migrarStatusLegadoSeNecessario();
     }
 
     public static AtividadeAluno nova(String alunoId, String texto, StatusAtividade status, String percepcaoProfessor) {

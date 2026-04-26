@@ -51,7 +51,7 @@ public class ReforcoAlunoService {
         existente.setTipoPcd(form.getTipoPcd());
         aplicarCamposOpcionais(existente, form);
         aplicarMensalidade(existente, form, true);
-        alunoRepository.update(existente);
+        alunoRepository.save(existente);
         controleFluxoService.sincronizarMensalidadeAposSalvarAluno(existente.getId());
     }
 

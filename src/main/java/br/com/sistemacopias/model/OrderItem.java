@@ -1,11 +1,22 @@
 package br.com.sistemacopias.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+
 import java.math.BigDecimal;
 
+@Embeddable
 public class OrderItem {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "product_type")
     private ProductType productType;
+    @Column(nullable = false)
     private int quantity;
+    @Column(name = "unit_price", precision = 19, scale = 2)
     private BigDecimal unitPrice;
+    @Column(precision = 19, scale = 2)
     private BigDecimal total;
 
     public OrderItem() {

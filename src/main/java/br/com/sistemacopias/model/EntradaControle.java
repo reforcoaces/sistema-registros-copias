@@ -1,24 +1,53 @@
 package br.com.sistemacopias.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "fluxo_entrada")
 public class EntradaControle {
+    @Id
+    @Column(length = 36)
     private String id;
+    @Column(name = "data_hora_registro", nullable = false)
     private LocalDateTime dataHoraRegistro;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40)
     private TipoEntradaControle tipo;
+    @Column(name = "aluno_id", length = 36)
     private String alunoId;
+    @Column(name = "descricao_livre", columnDefinition = "TEXT")
     private String descricaoLivre;
+    @Column(precision = 19, scale = 2)
     private BigDecimal valor;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "meio_pagamento", length = 40)
     private MeioPagamentoEntrada meioPagamento;
+    @Column(name = "meio_pagamento_outro", length = 200)
     private String meioPagamentoOutro;
     /** Null no JSON antigo: trata-se como {@link SituacaoEntrada#CONFIRMADA}. */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 24)
     private SituacaoEntrada situacao;
     /** Chave idempotente para parcelas automaticas (ex.: INS-{alunoId}, COB-{alunoId}-{yyyy-MM-dd}). */
+    @Column(name = "referencia_cobranca", length = 120)
     private String referenciaCobranca;
 
     public EntradaControle() {
+    }
+
+    @PostLoad
+    private void aposCarregar() {
+        migrarCamposLegadosSeNecessario();
     }
 
     public static EntradaControle nova(

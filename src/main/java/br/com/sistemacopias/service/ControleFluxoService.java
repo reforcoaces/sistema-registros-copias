@@ -269,7 +269,7 @@ public class ControleFluxoService {
         if (!temMensalidadeAtiva(aluno)) {
             removerPendentesAutomaticosAluno(alunoId);
             aluno.setProximaCobrancaPrevista(null);
-            alunoRepository.update(aluno);
+            alunoRepository.save(aluno);
             return;
         }
         RecorrenciaMensalidade rec = aluno.getRecorrenciaMensalidade() != null
@@ -282,7 +282,7 @@ public class ControleFluxoService {
         if (aluno.getProximaCobrancaPrevista() == null) {
             aluno.setProximaCobrancaPrevista(primeiraDataRecorrenteApos(reg, aluno.getDiaPagamentoPreferido(), rec));
         }
-        alunoRepository.update(aluno);
+        alunoRepository.save(aluno);
 
         String refIns = refInscricao(alunoId);
         List<EntradaControle> todas = entradaRepository.findAll();
@@ -302,7 +302,7 @@ public class ControleFluxoService {
             EntradaControle ins = insOpt.get();
             if (ins.getSituacao() == SituacaoEntrada.PENDENTE) {
                 ins.setValor(aluno.getValorMensalidade());
-                entradaRepository.update(ins);
+                entradaRepository.save(ins);
             }
         }
     }
@@ -317,7 +317,7 @@ public class ControleFluxoService {
         if (e.getMeioPagamento() == MeioPagamentoEntrada.A_CONFIRMAR) {
             e.setMeioPagamento(MeioPagamentoEntrada.PIX);
         }
-        entradaRepository.update(e);
+        entradaRepository.save(e);
 
         if (e.getTipo() == TipoEntradaControle.PAGAMENTO_ALUNO
                 && e.getAlunoId() != null
@@ -331,7 +331,7 @@ public class ControleFluxoService {
                         ? e.getDataHoraRegistro().toLocalDate()
                         : LocalDate.now();
                 aluno.setProximaCobrancaPrevista(proximaDataAposPagamento(base, rec, aluno.getDiaPagamentoPreferido()));
-                alunoRepository.update(aluno);
+                alunoRepository.save(aluno);
             }
         }
     }
@@ -492,7 +492,7 @@ public class ControleFluxoService {
         existente.setCategoriaRecorrente(form.getCategoriaRecorrente());
         existente.setLinkCompra(trimOrNull(form.getLinkCompra()));
         existente.setOrigemCompra(trimOrNull(form.getOrigemCompra()));
-        saidaRepository.update(existente);
+        saidaRepository.save(existente);
         registrarOrigemCompraUsada(existente.getOrigemCompra());
     }
 
@@ -581,7 +581,7 @@ public class ControleFluxoService {
         if (existente.getSituacao() == SituacaoEntrada.PENDENTE && existente.isEntradaAutomaticaMensalidade()) {
             existente.setValor(form.getValor());
             existente.setDescricaoLivre(form.getDescricaoLivre() != null ? form.getDescricaoLivre().trim() : "");
-            entradaRepository.update(existente);
+            entradaRepository.save(existente);
             return;
         }
         if (form.getMeioPagamento() == MeioPagamentoEntrada.A_CONFIRMAR) {
@@ -602,7 +602,7 @@ public class ControleFluxoService {
         existente.setMeioPagamentoOutro(form.getMeioPagamento() == MeioPagamentoEntrada.OUTRO
                 ? trimOrNull(form.getMeioPagamentoOutro())
                 : null);
-        entradaRepository.update(existente);
+        entradaRepository.save(existente);
     }
 
     private void validarEntrada(EntradaControleForm form) {

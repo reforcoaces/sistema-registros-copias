@@ -23,7 +23,7 @@ public class ReforcoAtividadeService {
     }
 
     public List<AtividadeAluno> listarPorAluno(String alunoId) {
-        return repository.findByAlunoId(alunoId);
+        return repository.findByAlunoIdOrderByCreatedAtDesc(alunoId);
     }
 
     public Optional<AtividadeAluno> buscarPorId(String id) {
@@ -54,7 +54,7 @@ public class ReforcoAtividadeService {
             throw new IllegalArgumentException("Registe a percepcao sobre o desenvolvimento ao finalizar.");
         }
         a.setUpdatedAt(LocalDateTime.now());
-        repository.update(a);
+        repository.save(a);
     }
 
     public AlunoEvolucaoDto montarEvolucao(String alunoId) {
@@ -92,8 +92,6 @@ public class ReforcoAtividadeService {
     }
 
     public List<AtividadeAluno> todasOrdenadasDesc() {
-        return repository.findAll().stream()
-                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-                .toList();
+        return repository.findAllByOrderByCreatedAtDesc();
     }
 }

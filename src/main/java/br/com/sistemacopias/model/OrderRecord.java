@@ -1,16 +1,40 @@
 package br.com.sistemacopias.model;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Entity
+@Table(name = "copia_pedido")
 public class OrderRecord {
+    @Id
+    @Column(length = 36)
     private String id;
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "copia_pedido_item",
+            joinColumns = @JoinColumn(name = "pedido_id", referencedColumnName = "id", nullable = false))
+    @OrderColumn(name = "line_idx")
     private List<OrderItem> items = new ArrayList<>();
+    @Column(name = "total_amount", precision = 19, scale = 2)
     private BigDecimal totalAmount;
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
     public OrderRecord() {

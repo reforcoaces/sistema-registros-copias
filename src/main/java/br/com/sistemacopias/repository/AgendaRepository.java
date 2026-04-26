@@ -1,48 +1,53 @@
 package br.com.sistemacopias.repository;
 
 import br.com.sistemacopias.model.AgendaSemana;
+import br.com.sistemacopias.model.ReforcoAgendaSingleton;
 import br.com.sistemacopias.support.AgendaGrade;
-import br.com.sistemacopias.support.DataFileBackupService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Repository
 public class AgendaRepository {
-    private final Path dataFilePath;
-    private final ObjectMapper objectMapper;
-    private final DataFileBackupService backupService;
 
-    public AgendaRepository(
-            @Value("${app.reforco.agenda.path:data/agenda-semana.json}") String path,
-            DataFileBackupService backupService) {
-        this.dataFilePath = Path.of(path).toAbsolutePath().normalize();
-        this.backupService = backupService;
+    private final ReforcoAgendaSingletonRepository jpaRepository;
+    private final ObjectMapper objectMapper;
+
+    public AgendaRepository(ReforcoAgendaSingletonRepository jpaRepository) {
+        this.jpaRepository = jpaRepository;
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
-    public Path getDataFilePath() {
-        return dataFilePath;
+    public AgendaSemana load() {
+        return jpaRepository.findById(ReforcoAgendaSingleton.SINGLETON_ID)
+                .map(row -> parseOrVazia(row.getJsonPayload()))
+                .orElseGet(AgendaRepository::agendaVazia);
     }
 
-    public synchronized AgendaSemana load() {
-        ensureFileExists();
+    public void save(AgendaSemana agenda) {
         try {
-            byte[] bytes = Files.readAllBytes(dataFilePath);
-            if (bytes.length == 0) {
+            String json = objectMapper.writeValueAsString(agenda != null ? agenda : agendaVazia());
+            ReforcoAgendaSingleton row = jpaRepository.findById(ReforcoAgendaSingleton.SINGLETON_ID)
+                    .orElseGet(() -> new ReforcoAgendaSingleton(ReforcoAgendaSingleton.SINGLETON_ID, json));
+            row.setJsonPayload(json);
+            jpaRepository.save(row);
+        } catch (Exception e) {
+            throw new IllegalStateException("Erro ao salvar agenda", e);
+        }
+    }
+
+    private AgendaSemana parseOrVazia(String json) {
+        try {
+            if (json == null || json.isBlank()) {
                 return agendaVazia();
             }
-            AgendaSemana a = objectMapper.readValue(bytes, AgendaSemana.class);
+            AgendaSemana a = objectMapper.readValue(json, AgendaSemana.class);
             if (a.getTextos() == null) {
                 a.setTextos(new LinkedHashMap<>());
             }
@@ -55,15 +60,6 @@ public class AgendaRepository {
         }
     }
 
-    public synchronized void save(AgendaSemana agenda) {
-        try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(dataFilePath.toFile(), agenda);
-            backupService.mirrorAfterWrite(dataFilePath);
-        } catch (IOException e) {
-            throw new IllegalStateException("Erro ao salvar agenda", e);
-        }
-    }
-
     private static AgendaSemana agendaVazia() {
         AgendaSemana a = new AgendaSemana();
         Map<String, String> m = new LinkedHashMap<>();
@@ -72,20 +68,5 @@ public class AgendaRepository {
         }
         a.setTextos(m);
         return a;
-    }
-
-    private void ensureFileExists() {
-        try {
-            Path parent = dataFilePath.getParent();
-            if (parent != null && Files.notExists(parent)) {
-                Files.createDirectories(parent);
-            }
-            if (Files.notExists(dataFilePath)) {
-                AgendaSemana empty = agendaVazia();
-                objectMapper.writerWithDefaultPrettyPrinter().writeValue(dataFilePath.toFile(), empty);
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Erro ao preparar agenda-semana.json", e);
-        }
     }
 }

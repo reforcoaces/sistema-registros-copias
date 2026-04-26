@@ -17,11 +17,10 @@ public class UserService {
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        ensureDefaults();
     }
 
     public Optional<AppUser> authenticate(String username, String password) {
-        return userRepository.findByUsername(username)
+        return userRepository.findByUsernameIgnoreCase(username)
                 .filter(user -> encoder.matches(password, user.getPasswordHash()));
     }
 
@@ -30,26 +29,23 @@ public class UserService {
     }
 
     public void createUser(String username, String password, UserRole role) {
-        List<AppUser> users = new ArrayList<>(userRepository.findAll());
-        boolean exists = users.stream().anyMatch(u -> u.getUsername().equalsIgnoreCase(username));
-        if (exists) {
+        if (userRepository.findByUsernameIgnoreCase(username).isPresent()) {
             throw new IllegalArgumentException("Usuario ja existe");
         }
-        users.add(AppUser.create(username, encoder.encode(password), role));
-        userRepository.saveAll(users);
+        userRepository.save(AppUser.create(username, encoder.encode(password), role));
     }
 
     public void changePassword(String username, String newPassword) {
-        List<AppUser> users = new ArrayList<>(userRepository.findAll());
-        AppUser user = users.stream()
-                .filter(u -> u.getUsername().equalsIgnoreCase(username))
-                .findFirst()
+        AppUser user = userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
         user.setPasswordHash(encoder.encode(newPassword));
-        userRepository.saveAll(users);
+        userRepository.save(user);
     }
 
-    private void ensureDefaults() {
+    /**
+     * Chamado apos o arranque da aplicacao se ainda nao existir nenhum utilizador na base.
+     */
+    public void ensureDefaultUsersIfEmpty() {
         List<AppUser> users = userRepository.findAll();
         if (!users.isEmpty()) {
             return;
@@ -58,6 +54,6 @@ public class UserService {
         users.add(AppUser.create("admin", encoder.encode("admin123"), UserRole.ADMIN));
         users.add(AppUser.create("lucilene", encoder.encode("colab123"), UserRole.COLABORADOR));
         users.add(AppUser.create("lukas", encoder.encode("colab123"), UserRole.COLABORADOR));
-        userRepository.saveAll(users);
+        userRepository.saveAllAndFlush(users);
     }
 }

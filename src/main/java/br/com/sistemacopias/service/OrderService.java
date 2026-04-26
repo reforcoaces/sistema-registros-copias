@@ -190,7 +190,7 @@ public class OrderService {
         existing.setPaymentMethod(form.getPaymentMethod());
         existing.setItems(items);
         existing.setTotalAmount(total);
-        orderRepository.update(existing);
+        orderRepository.save(existing);
     }
 
     public void deleteOrder(String id) {
