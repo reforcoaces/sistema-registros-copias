@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle — Saida</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="fluxo-wrap fluxo-page-main">
+    <h1 th:text="${editMode} ? 'Editar saida' : 'Nova saida'">Saida</h1>
+    <nav class="nav-row">
+        <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+        <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+    </nav>
+
+    <section class="card">
+        <form th:object="${form}" method="post" id="form-saida"
+              th:action="${editMode} ? |/controle-fluxo/saidas/${form.id}/editar| : @{/controle-fluxo/saidas/nova}">
+            <input type="hidden" th:field="*{id}" th:if="${editMode}">
+            <div class="error-box" th:if="${#fields.hasAnyErrors()}">
+                <ul>
+                    <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
+                </ul>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="catSaida">Tipo de saida (mensal ou outra)</label>
+                <select id="catSaida" th:field="*{categoriaRecorrente}" required>
+                    <option th:value="${null}" disabled th:selected="${form.categoriaRecorrente == null}">Selecione</option>
+                    <option th:each="c : ${categoriasSaida}" th:value="${c}" th:text="${c.label}"></option>
+                </select>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="descCompra">O que foi comprado ou investido? <span class="muted" style="font-weight:400;">(opcional)</span></label>
+                <p class="muted" style="margin:0 0 8px;font-size:0.88rem;">
+                    Pode ficar em branco; use para detalhes ou quando escolher &quot;Outra saida&quot; sem texto fica o rotulo padrao.
+                </p>
+                <textarea id="descCompra" rows="2" th:field="*{descricaoCompra}"
+                          class="form-stack-input"
+                          placeholder="Detalhes opcionais"></textarea>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="valorVisivel">Valor</label>
+                <div class="input-moeda-wrap">
+                    <span class="input-moeda-wrap__prefix" aria-hidden="true">R$</span>
+                    <input type="text" id="valorVisivel" class="input-moeda-br" inputmode="numeric" autocomplete="off" required
+                           th:attr="aria-label='Valor em reais'">
+                    <input type="hidden" th:field="*{valor}" class="input-moeda-hidden">
+                </div>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="dataCompra">Data da compra ou da saida</label>
+                <input id="dataCompra" type="date" th:field="*{dataCompraOuSaida}" required>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="banco">Banco ou conta utilizada para pagar</label>
+                <input id="banco" th:field="*{bancoPagamento}" required
+                       placeholder="Ex.: Nubank PJ, Caixa ag. 1234, dinheiro em caixa">
+                <p class="muted" style="font-size:0.85rem;margin-top:6px;">Importante para cruzar com o extrato ou comprovante no app do banco.</p>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="linkCompra">Link da compra (opcional)</label>
+                <input id="linkCompra" type="text" th:field="*{linkCompra}" placeholder="https://... (opcional)">
+            </div>
+
+            <div class="form-stack-block">
+                <label for="origemCompra">Onde foi comprado (opcional)</label>
+                <input id="origemCompra" th:field="*{origemCompra}" placeholder="Ex.: Mercado Livre, loja fisica, Shopee">
+            </div>
+
+            <div class="actions" style="margin-top:14px;">
+                <button type="submit" class="btn-nav">Guardar</button>
+            </div>
+        </form>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script th:src="@{/js/moeda-br.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+/* Barra fixa: data, hora (segundos) e temperatura — todas as paginas */
+html {
+    scroll-padding-top: var(--app-status-bar-h, 48px);
+}
+
+.app-status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 400;
+    min-height: var(--app-status-bar-h);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    color: #f8fafc;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.35);
+}
+
+.app-status-bar__inner {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    font-size: 0.875rem;
+    line-height: 1.35;
+}
+
+.app-status-bar__line {
+    margin: 0;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+}
+
+.app-status-bar__temp-wrap {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.app-status-bar__temp {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #7dd3fc;
+    font-variant-numeric: tabular-nums;
+    min-width: 3.2rem;
+    text-align: right;
+}
+
+@media (max-width: 520px) {
+    :root {
+        --app-status-bar-h: 56px;
+    }
+
+    .app-status-bar__inner {
+        font-size: 0.8rem;
+    }
+}

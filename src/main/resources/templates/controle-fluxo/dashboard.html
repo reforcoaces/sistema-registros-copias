@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle — Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="fluxo-wrap">
+    <h1>Controle de entradas e saidas</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+            <span>Modulo: <strong>Entradas / saidas</strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row">
+        <a class="btn-nav" href="/controle-fluxo/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/controle-fluxo/saidas">Saidas (despesas)</a>
+        <a class="btn-nav" href="/controle-fluxo/entradas">Entradas manuais</a>
+    </nav>
+
+    <form class="fluxo-mes-form card" method="get" th:action="@{/controle-fluxo/dashboard}">
+        <input type="hidden" name="vistaExtra" th:value="${vistaExtra}">
+        <label>Mes
+            <select name="mes">
+                <option th:each="m : ${#numbers.sequence(1, 12)}"
+                        th:value="${m}"
+                        th:selected="${m == mesSelecionado}"
+                        th:text="${m}"></option>
+            </select>
+        </label>
+        <label>Ano
+            <select name="ano">
+                <option th:each="a : ${#numbers.sequence(anoSelecionado - 2, anoSelecionado + 2)}"
+                        th:value="${a}"
+                        th:selected="${a == anoSelecionado}"
+                        th:text="${a}"></option>
+            </select>
+        </label>
+        <button type="submit" class="btn-nav">Atualizar</button>
+    </form>
+
+    <p class="muted" style="margin-bottom:12px;">
+        Mes de referencia:
+        <strong th:text="${mesReferenciaLabel}">04/2026</strong>
+        — Saidas contabilizadas pela <strong>data da compra/despesa</strong>;
+        entradas manuais e pedidos de copias pela <strong>data do registo</strong> no mes.
+    </p>
+
+    <div class="dash-grid">
+        <div class="dash-card dash-orange">
+            <span class="dash-label">Total saidas (mes)</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalSaidasMes, 1, 2)}">R$ 0</span>
+        </div>
+        <div class="dash-card dash-green">
+            <span class="dash-label">Entradas manuais (mes)</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasManuaisMes, 1, 2)}">R$ 0</span>
+        </div>
+        <div class="dash-card dash-teal">
+            <span class="dash-label">Pedidos copias (mes)</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasPedidosMes, 1, 2)}">R$ 0</span>
+        </div>
+        <div class="dash-card dash-blue">
+            <span class="dash-label">Total entradas (mes)</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.totalEntradasMes, 1, 2)}">R$ 0</span>
+        </div>
+        <div class="dash-card dash-purple">
+            <span class="dash-label">Saldo (entradas - saidas)</span>
+            <span class="dash-value" th:text="${'R$ ' + #numbers.formatDecimal(fluxo.saldoMes, 1, 2)}">R$ 0</span>
+        </div>
+    </div>
+
+    <form method="get" class="card dash-vista-form" th:action="@{/controle-fluxo/dashboard}">
+        <input type="hidden" name="mes" th:value="${mesSelecionado}">
+        <input type="hidden" name="ano" th:value="${anoSelecionado}">
+        <label for="vistaFluxo">Vista complementar <span class="muted" style="font-weight:400;">(opcional)</span></label>
+        <select id="vistaFluxo" name="vistaExtra" onchange="this.form.submit()">
+            <option value="nenhuma" th:selected="${vistaExtra == 'nenhuma'}">Nenhuma</option>
+            <option value="pizza_resumo" th:selected="${vistaExtra == 'pizza_resumo'}">Pizza — saidas vs entradas (totais)</option>
+            <option value="pizza_entradas" th:selected="${vistaExtra == 'pizza_entradas'}">Pizza — origem das entradas (manual vs pedidos)</option>
+            <option value="barras_resumo" th:selected="${vistaExtra == 'barras_resumo'}">Barras — totais do mes</option>
+        </select>
+        <p class="muted" style="margin:8px 0 0;font-size:0.85rem;">Os cartoes e a tabela de movimentos acima mantem-se; abaixo e uma vista grafica extra.</p>
+    </form>
+
+    <section class="card dash-section dash-extra-panel" style="margin-top:12px;"
+             th:if="${chartPieExtra != null or (chartBarrasExtra != null and !chartBarrasExtra.isEmpty())}">
+        <h2>Vista selecionada</h2>
+        <div class="dash-extra-layout" th:if="${chartPieExtra != null}">
+            <div class="dash-pie-disk"
+                 th:attr="style=${'background: ' + chartPieExtra.gradientCss + '; width:200px; height:200px; border-radius:50%;'}"></div>
+            <ul class="dash-pie-legend">
+                <li th:each="row : ${chartPieExtra.legend}">
+                    <span class="dash-pie-dot" th:style="|background-color:${row.color}|"></span>
+                    <span class="dash-pie-lab" th:text="${row.label}"></span>
+                    <strong class="dash-pie-val" th:text="${row.amountLabel}"></strong>
+                </li>
+            </ul>
+        </div>
+        <div class="dash-hbar-wrap" th:if="${chartBarrasExtra != null and !chartBarrasExtra.isEmpty()}">
+            <div class="dash-hbar-row" th:each="r : ${chartBarrasExtra}">
+                <span class="dash-hbar-label" th:text="${r.label}"></span>
+                <div class="dash-hbar-track">
+                    <div class="dash-hbar-fill" th:style="|width: ${r.percentWidth}%;|"></div>
+                </div>
+                <span class="dash-hbar-val" th:text="${r.valueLabel}"></span>
+            </div>
+        </div>
+    </section>
+    <p class="muted" style="margin:0 0 16px;"
+       th:if="${vistaExtra != 'nenhuma' and chartPieExtra == null and (chartBarrasExtra == null or chartBarrasExtra.isEmpty())}">
+        Sem dados suficientes para esta vista neste mes (valores zerados).
+    </p>
+
+    <section class="card dash-section" style="margin-top:20px;">
+        <h2>Movimentos no mes</h2>
+        <p class="muted" th:if="${fluxo.movimentosDoMes.isEmpty()}">Sem movimentos neste mes.</p>
+        <div style="overflow-x:auto;" th:if="${!fluxo.movimentosDoMes.isEmpty()}">
+            <table class="mov-table">
+                <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Data/hora</th>
+                    <th>Descricao</th>
+                    <th class="col-valor">Valor</th>
+                    <th>Detalhe</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="m : ${fluxo.movimentosDoMes}">
+                    <td>
+                        <span class="tag-saida" th:if="${m.saida}">Saida</span>
+                        <span class="tag-entrada" th:unless="${m.saida}">Entrada</span>
+                    </td>
+                    <td th:text="${#temporals.format(m.dataHora, 'dd/MM/yyyy HH:mm')}">—</td>
+                    <td th:text="${m.descricao}">—</td>
+                    <td class="col-valor" th:text="${'R$ ' + #numbers.formatDecimal(m.valor, 1, 2)}">R$ 0</td>
+                    <td style="font-size:0.82rem;color:#64748b;" th:text="${m.detalhe}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle — Entradas manuais</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="fluxo-wrap">
+    <h1>Entradas manuais</h1>
+    <p class="muted">As entradas geradas pelos <strong>pedidos do sistema de copias</strong> aparecem no dashboard (nao precisam ser registadas aqui).</p>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row">
+        <a class="btn-nav" href="/controle-fluxo/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/controle-fluxo/saidas">Saidas</a>
+        <a class="btn-nav" href="/controle-fluxo/entradas">Entradas manuais</a>
+    </nav>
+
+    <div th:if="${param.sucesso}" class="app-feedback app-feedback--ok" role="status" id="fluxo-entradas-ok">Registo guardado.</div>
+
+    <section class="card" style="margin-top:12px;">
+        <a class="btn-nav" href="/controle-fluxo/entradas/nova">Nova entrada</a>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+        <h2>Historico</h2>
+        <p class="muted" th:if="${entradas.isEmpty()}">Nenhuma entrada manual.</p>
+        <div style="overflow-x:auto;" th:if="${!entradas.isEmpty()}">
+            <table class="mov-table">
+                <thead>
+                <tr>
+                    <th>Data/hora registo</th>
+                    <th>Tipo</th>
+                    <th>Detalhe</th>
+                    <th>Meio</th>
+                    <th class="col-valor">Valor</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${entradas}">
+                    <td th:text="${#temporals.format(e.dataHoraRegistro, 'dd/MM/yyyy HH:mm')}">—</td>
+                    <td th:text="${e.tipo.label}">—</td>
+                    <td>
+                        <span th:if="${e.tipo.name() == 'PAGAMENTO_ALUNO'}"
+                              th:text="${e.alunoId != null && nomesAlunos.containsKey(e.alunoId) ? nomesAlunos.get(e.alunoId) : 'Aluno (cadastro removido ou id antigo)'}">—</span>
+                        <span th:if="${e.tipo.name() == 'TEXTO_LIVRE'}" th:text="${e.descricaoLivre}">—</span>
+                    </td>
+                    <td th:text="${e.meioPagamentoResumo}">—</td>
+                    <td class="col-valor" th:text="${'R$ ' + #numbers.formatDecimal(e.valor, 1, 2)}">R$ 0</td>
+                    <td><a class="btn-nav btn-nav--secondary" style="min-height:34px;padding:6px 10px;font-size:0.8rem;"
+                           th:href="@{/controle-fluxo/entradas/{id}/editar(id=${e.id})}">Editar</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script>
+    (function () {
+        var el = document.getElementById('fluxo-entradas-ok');
+        if (el) {
+            setTimeout(function () {
+                el.remove();
+            }, 4500);
+        }
+    })();
+</script>
+</body>
+</html>

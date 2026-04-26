@@ -7,10 +7,10 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="container">
     <h1>Editar Pedido Finalizado</h1>
     <nav class="nav-row" aria-label="Atalhos">
-        <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/pedidos'; }">Voltar</button>
         <a class="btn-nav" href="/dashboard">Dashboard</a>
         <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
         <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
@@ -47,5 +47,7 @@
         </form>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
 </body>
 </html>

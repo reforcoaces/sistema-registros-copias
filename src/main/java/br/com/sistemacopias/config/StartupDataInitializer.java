@@ -17,16 +17,22 @@ public class StartupDataInitializer implements CommandLineRunner {
     private final String alunosPath;
     private final String atividadesPath;
     private final String agendaPath;
+    private final String saidasFluxoPath;
+    private final String entradasFluxoPath;
 
     public StartupDataInitializer(
             @Value("${app.storage.path:data/orders.json}") String storagePath,
             @Value("${app.reforco.alunos.path:data/alunos.json}") String alunosPath,
             @Value("${app.reforco.atividades.path:data/atividades.json}") String atividadesPath,
-            @Value("${app.reforco.agenda.path:data/agenda-semana.json}") String agendaPath) {
+            @Value("${app.reforco.agenda.path:data/agenda-semana.json}") String agendaPath,
+            @Value("${app.fluxo.saidas.path:data/saidas.json}") String saidasFluxoPath,
+            @Value("${app.fluxo.entradas.path:data/entradas.json}") String entradasFluxoPath) {
         this.storagePath = storagePath;
         this.alunosPath = alunosPath;
         this.atividadesPath = atividadesPath;
         this.agendaPath = agendaPath;
+        this.saidasFluxoPath = saidasFluxoPath;
+        this.entradasFluxoPath = entradasFluxoPath;
     }
 
     @Override
@@ -34,6 +40,8 @@ public class StartupDataInitializer implements CommandLineRunner {
         ensureJsonFile(storagePath, "[]");
         ensureJsonFile(alunosPath, "[]");
         ensureJsonFile(atividadesPath, "[]");
+        ensureJsonFile(saidasFluxoPath, "[]");
+        ensureJsonFile(entradasFluxoPath, "[]");
         ensureAgendaFile();
     }
 

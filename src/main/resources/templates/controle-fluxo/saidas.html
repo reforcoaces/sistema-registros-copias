@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle — Saidas</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="fluxo-wrap">
+    <h1>Saidas (despesas e investimentos)</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row">
+        <a class="btn-nav" href="/controle-fluxo/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/controle-fluxo/saidas">Saidas</a>
+        <a class="btn-nav" href="/controle-fluxo/entradas">Entradas manuais</a>
+    </nav>
+
+    <div th:if="${param.sucesso}" class="app-feedback app-feedback--ok" role="status" id="fluxo-saidas-ok">Registo guardado.</div>
+
+    <section class="card" style="margin-top:12px;">
+        <a class="btn-nav" href="/controle-fluxo/saidas/nova">Nova saida</a>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+        <h2>Historico</h2>
+        <p class="muted" th:if="${saidas.isEmpty()}">Nenhuma saida registada.</p>
+        <div style="overflow-x:auto;" th:if="${!saidas.isEmpty()}">
+            <table class="mov-table">
+                <thead>
+                <tr>
+                    <th>Registo</th>
+                    <th>Data compra/despesa</th>
+                    <th>Descricao</th>
+                    <th class="col-valor">Valor</th>
+                    <th>Banco / conta</th>
+                    <th>Link</th>
+                    <th>Onde</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${saidas}">
+                    <td th:text="${#temporals.format(s.dataHoraRegistro, 'dd/MM/yyyy HH:mm')}">—</td>
+                    <td th:text="${#temporals.format(s.dataCompraOuSaida, 'dd/MM/yyyy')}">—</td>
+                    <td th:text="${s.descricaoCompra}">—</td>
+                    <td class="col-valor" th:text="${'R$ ' + #numbers.formatDecimal(s.valor, 1, 2)}">R$ 0</td>
+                    <td th:text="${s.bancoPagamento}">—</td>
+                    <td>
+                        <a th:if="${s.linkCompra != null && !#strings.isEmpty(s.linkCompra)}"
+                           th:href="${s.linkCompra}" target="_blank" rel="noopener noreferrer">Abrir</a>
+                        <span th:unless="${s.linkCompra != null && !#strings.isEmpty(s.linkCompra)}">—</span>
+                    </td>
+                    <td th:text="${s.origemCompra != null && !#strings.isEmpty(s.origemCompra) ? s.origemCompra : '—'}">—</td>
+                    <td><a class="btn-nav btn-nav--secondary" style="min-height:34px;padding:6px 10px;font-size:0.8rem;"
+                           th:href="@{/controle-fluxo/saidas/{id}/editar(id=${s.id})}">Editar</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script>
+    (function () {
+        var el = document.getElementById('fluxo-saidas-ok');
+        if (el) {
+            setTimeout(function () {
+                el.remove();
+            }, 4500);
+        }
+    })();
+</script>
+</body>
+</html>

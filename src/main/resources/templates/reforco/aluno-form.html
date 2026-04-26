@@ -8,11 +8,11 @@
     <link rel="stylesheet" th:href="@{/css/reforco.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="reforco-wrap">
     <h1 th:text="${titulo}">Aluno</h1>
     <header class="app-toolbar" th:if="${currentUser != null}">
         <nav class="app-toolbar__nav">
-            <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Voltar a lista</a>
             <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
             <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
         </nav>
@@ -55,5 +55,7 @@
         </form>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
 </body>
 </html>

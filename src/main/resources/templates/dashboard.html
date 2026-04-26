@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="dashboard-wrap">
     <h1>Dashboard</h1>
     <header class="app-toolbar" th:if="${currentUser != null}">
@@ -15,7 +16,6 @@
             <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
         </div>
         <nav class="app-toolbar__nav">
-            <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">Voltar</button>
             <a class="btn-nav btn-nav--secondary" th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a>
             <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
         </nav>
@@ -72,6 +72,46 @@
         </div>
         <p th:if="${stats.paymentMonthTotals.isEmpty()}">Sem dados no mes.</p>
     </section>
+
+    <form method="get" action="/dashboard" class="card dash-vista-form">
+        <label for="vistaCopias">Vista complementar <span class="muted" style="font-weight:400;">(opcional)</span></label>
+        <select id="vistaCopias" name="vistaExtra" onchange="this.form.submit()">
+            <option value="nenhuma" th:selected="${vistaExtra == 'nenhuma'}">Nenhuma</option>
+            <option value="pizza_pagamento" th:selected="${vistaExtra == 'pizza_pagamento'}">Pizza — pagamentos no mes</option>
+            <option value="barras_produto" th:selected="${vistaExtra == 'barras_produto'}">Barras — faturamento por produto (mes)</option>
+        </select>
+        <p class="muted" style="margin:8px 0 0;font-size:0.85rem;">O resumo em cartoes e graficos acima mantem-se; abaixo e uma camada extra.</p>
+    </form>
+
+    <section class="card dash-section dash-extra-panel" th:if="${chartPieExtra != null or (chartBarrasExtra != null and !chartBarrasExtra.isEmpty())}">
+        <h2>Vista selecionada</h2>
+        <div class="dash-extra-layout" th:if="${chartPieExtra != null}">
+            <div class="dash-pie-disk"
+                 th:attr="style=${'background: ' + chartPieExtra.gradientCss + '; width:200px; height:200px; border-radius:50%;'}"></div>
+            <ul class="dash-pie-legend">
+                <li th:each="row : ${chartPieExtra.legend}">
+                    <span class="dash-pie-dot" th:style="|background-color:${row.color}|"></span>
+                    <span class="dash-pie-lab" th:text="${row.label}"></span>
+                    <strong class="dash-pie-val" th:text="${row.amountLabel}"></strong>
+                </li>
+            </ul>
+        </div>
+        <div class="dash-hbar-wrap" th:if="${chartBarrasExtra != null and !chartBarrasExtra.isEmpty()}">
+            <div class="dash-hbar-row" th:each="r : ${chartBarrasExtra}">
+                <span class="dash-hbar-label" th:text="${r.label}"></span>
+                <div class="dash-hbar-track">
+                    <div class="dash-hbar-fill" th:style="|width: ${r.percentWidth}%;|"></div>
+                </div>
+                <span class="dash-hbar-val" th:text="${r.valueLabel}"></span>
+            </div>
+        </div>
+    </section>
+    <p class="muted" style="margin:0 0 16px;padding:0 4px;"
+       th:if="${vistaExtra != 'nenhuma' and chartPieExtra == null and (chartBarrasExtra == null or chartBarrasExtra.isEmpty())}">
+        Sem dados suficientes para esta vista no mes atual (tudo zerado ou sem registos).
+    </p>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
 </body>
 </html>

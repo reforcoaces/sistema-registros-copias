@@ -56,4 +56,6 @@ data/users.json
 data/alunos.json
 data/atividades.json
 data/agenda-semana.json
+data/saidas.json
+data/entradas.json
 data/.backup-sync-state.json

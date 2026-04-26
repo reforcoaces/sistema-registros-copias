@@ -7,12 +7,16 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="container sistema-escolha">
     <h1>Escolher sistema</h1>
     <p class="lead">Selecione em qual modulo deseja trabalhar agora.</p>
 
     <div class="error-box" th:if="${param.reforcoNegado}">
         Acesso ao modulo Reforco Aces nao permitido para este usuario.
+    </div>
+    <div class="error-box" th:if="${param.fluxoNegado}">
+        Acesso ao modulo Controle de entradas e saidas nao permitido para este usuario.
     </div>
 
     <div class="sistema-cards">
@@ -30,9 +34,16 @@
             <button type="submit" class="btn-nav">Entrar</button>
         </form>
 
+        <form method="post" action="/escolher-sistema" class="card sistema-card" th:if="${podeControleFluxo}">
+            <input type="hidden" name="sistema" value="CONTROLE_FLUXO">
+            <h2>Controle de entradas e saidas</h2>
+            <p>Despesas, entradas (inclui faturamento dos pedidos de copias), totais por mes e banco utilizado.</p>
+            <button type="submit" class="btn-nav">Entrar</button>
+        </form>
+
         <section class="card sistema-card sistema-card--disabled" th:unless="${podeReforco}">
-            <h2>Reforco Aces</h2>
-            <p class="muted">Disponivel apenas para administracao e para a colaboradora Lucilene.</p>
+            <h2>Modulos Reforco Aces e Controle financeiro</h2>
+            <p class="muted">Disponiveis apenas para administracao e para a colaboradora Lucilene.</p>
             <button type="button" class="btn-nav btn-nav--secondary" disabled>Indisponivel</button>
         </section>
     </div>
@@ -41,5 +52,7 @@
         <a href="/logout">Sair da conta</a>
     </p>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
 </body>
 </html>

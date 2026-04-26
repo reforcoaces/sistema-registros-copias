@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="container">
     <h1>Importacao de Dados Retroativos</h1>
     <header class="app-toolbar" th:if="${currentUser != null}">
@@ -15,7 +16,6 @@
             <span>Perfil: <strong th:text="${currentUser.role}"></strong></span>
         </div>
         <nav class="app-toolbar__nav">
-            <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">Voltar</button>
             <a class="btn-nav btn-nav--secondary" th:if="${currentUser.role.name() == 'ADMIN'}" href="/usuarios">Usuarios</a>
             <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
         </nav>
@@ -40,11 +40,26 @@
         </form>
     </section>
 
+    <div th:if="${importedCount != null}" class="app-feedback app-feedback--ok" role="status" id="import-ok"
+         th:text="|Importacao concluida: ${importedCount} linhas importadas, ${skippedCount != null ? skippedCount : 0} ignoradas.|"></div>
+
     <section class="card success-box" th:if="${importedCount != null}">
         <p><strong>Importados:</strong> <span th:text="${importedCount}"></span></p>
         <p><strong>Ignorados:</strong> <span th:text="${skippedCount}"></span></p>
         <p>Linhas invalidas ou sem dados minimos sao ignoradas automaticamente.</p>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script>
+    (function () {
+        var el = document.getElementById('import-ok');
+        if (el) {
+            setTimeout(function () {
+                el.remove();
+            }, 6000);
+        }
+    })();
+</script>
 </body>
 </html>

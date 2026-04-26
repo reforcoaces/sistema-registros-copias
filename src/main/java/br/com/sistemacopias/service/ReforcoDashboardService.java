@@ -8,6 +8,7 @@ import br.com.sistemacopias.repository.AlunoRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -42,6 +43,13 @@ public class ReforcoDashboardService {
         Map<String, String> nomes = alunos.stream()
                 .collect(Collectors.toMap(Aluno::getId, Aluno::getNomeCompleto, (a, b) -> a));
         v.setNomeAlunoPorId(nomes);
+        Map<String, Integer> porEsc = alunos.stream()
+                .filter(a -> a.getEscolaridade() != null)
+                .collect(Collectors.groupingBy(
+                        a -> a.getEscolaridade().getLabel(),
+                        LinkedHashMap::new,
+                        Collectors.summingInt(x -> 1)));
+        v.setAlunosPorEscolaridade(porEsc);
         return v;
     }
 }

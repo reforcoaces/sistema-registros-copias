@@ -8,6 +8,54 @@ body {
     color: #0f172a;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     line-height: 1.45;
+    /* Barra fixa superior (data/hora/temperatura) — altura ajustavel em status-bar.css */
+    padding-top: var(--app-status-bar-h, 48px);
+    /* Espaco para o botao Voltar fixo no canto inferior esquerdo */
+    padding-bottom: 5.5rem;
+}
+
+:root {
+    --app-status-bar-h: 48px;
+}
+
+/* Rodape fixo: Voltar sempre visivel, afastado do conteudo */
+.app-footer-voltar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: 16px 20px 20px;
+    margin-top: 0;
+    background: linear-gradient(to top, rgba(238, 241, 246, 0.98) 60%, rgba(238, 241, 246, 0));
+    pointer-events: none;
+}
+
+.app-footer-voltar__btn {
+    pointer-events: auto;
+    min-width: 7rem;
+}
+
+/* Entrada de valores em formato brasileiro (R$ 1.234,56) */
+.input-moeda-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 22rem;
+}
+
+.input-moeda-wrap__prefix {
+    font-weight: 600;
+    color: #334155;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.input-moeda-wrap .input-moeda-br {
+    flex: 1;
+    min-width: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Barra de utilizador + navegacao (botoes) ---------- */
@@ -316,4 +364,43 @@ td {
     color: #1e7dfa;
     text-decoration: none;
     font-weight: bold;
+}
+
+/* Feedback leve (toasts / banners) */
+.app-feedback {
+    position: fixed;
+    top: calc(var(--app-status-bar-h, 48px) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    max-width: min(92vw, 420px);
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.18);
+    animation: app-feedback-in 0.28s ease;
+}
+
+.app-feedback--info {
+    background: #eff6ff;
+    color: #1e3a8a;
+    border: 1px solid #93c5fd;
+}
+
+.app-feedback--ok {
+    background: #ecfdf5;
+    color: #14532d;
+    border: 1px solid #6ee7b7;
+}
+
+@keyframes app-feedback-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }

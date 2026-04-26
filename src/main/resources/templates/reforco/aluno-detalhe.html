@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/reforco.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="reforco-wrap">
     <h1 th:text="${aluno.nomeCompleto}">Aluno</h1>
     <header class="app-toolbar" th:if="${currentUser != null}">
@@ -27,9 +28,7 @@
               th:href="@{/reforco/alunos/{id}/editar(id=${aluno.id})}">Editar cadastro</a></p>
     </section>
 
-    <div class="success-box card" th:if="${param.atividadeOk}">
-        <strong>Atividade registada.</strong>
-    </div>
+    <div th:if="${param.atividadeOk}" class="app-feedback app-feedback--ok" role="status" id="atividade-ok-toast">Atividade registada.</div>
 
     <section class="card">
         <h2>Nova atividade</h2>
@@ -63,5 +62,17 @@
         </ul>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script>
+    (function () {
+        var el = document.getElementById('atividade-ok-toast');
+        if (el) {
+            setTimeout(function () {
+                el.remove();
+            }, 4500);
+        }
+    })();
+</script>
 </body>
 </html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle — Entrada</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/fluxo.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="fluxo-wrap fluxo-page-main">
+    <h1 th:text="${editMode} ? 'Editar entrada' : 'Nova entrada'">Entrada</h1>
+    <nav class="nav-row">
+        <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+        <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+    </nav>
+
+    <section class="card">
+        <form th:object="${form}" method="post" id="form-entrada"
+              th:action="${editMode} ? |/controle-fluxo/entradas/${form.id}/editar| : @{/controle-fluxo/entradas/nova}">
+            <input type="hidden" th:field="*{id}" th:if="${editMode}">
+            <div class="error-box" th:if="${#fields.hasAnyErrors()}">
+                <ul>
+                    <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
+                </ul>
+            </div>
+
+            <fieldset class="form-fieldset-tipo">
+                <legend>Tipo de entrada</legend>
+                <label th:each="t : ${tiposEntrada}" class="form-radio-line">
+                    <input type="radio" th:field="*{tipo}" th:value="${t}" class="js-tipo-entrada" required>
+                    <span th:text="${t.label}"></span>
+                </label>
+            </fieldset>
+
+            <div id="bloco-aluno" style="display:none;">
+                <div class="form-stack-block">
+                    <label for="alunoId">Aluno (lista do Reforco Aces)</label>
+                    <select id="alunoId" th:field="*{alunoId}">
+                        <option value="">Selecione</option>
+                        <option th:each="a : ${alunos}" th:value="${a.id}" th:text="${a.nomeCompleto}"></option>
+                    </select>
+                </div>
+                <div class="form-stack-block">
+                    <label for="notaAluno">Observacao <span class="muted" style="font-weight:400;">(opcional)</span></label>
+                    <input id="notaAluno" type="text" th:field="*{descricaoLivre}" class="form-stack-input"
+                           placeholder="Ex.: mensalidade marco">
+                </div>
+            </div>
+
+            <div id="bloco-livre" style="display:none;">
+                <div class="form-stack-block">
+                    <label for="livre">Descricao da entrada</label>
+                    <p class="muted" style="margin:0 0 8px;font-size:0.88rem;">Descreva abaixo o que entrou (ex.: doacao, aluguel de sala).</p>
+                    <textarea id="livre" rows="2" th:field="*{descricaoLivre}" class="form-stack-input"
+                              placeholder="Digite a descricao"></textarea>
+                </div>
+            </div>
+
+            <div class="form-stack-block">
+                <label for="meioPagamento">Meio da entrada</label>
+                <select id="meioPagamento" th:field="*{meioPagamento}" required>
+                    <option th:value="${null}" disabled th:selected="${form.meioPagamento == null}">Selecione</option>
+                    <option th:each="m : ${meiosPagamentoEntrada}" th:value="${m}" th:text="${m.label}"></option>
+                </select>
+            </div>
+
+            <div class="form-stack-block" id="bloco-meio-outro" style="display:none;">
+                <label for="meioPagamentoOutro">Especifique o meio</label>
+                <input id="meioPagamentoOutro" th:field="*{meioPagamentoOutro}" placeholder="Ex.: cheque, voucher">
+            </div>
+
+            <div class="form-stack-block">
+                <label for="valorVisivelEntrada">Valor</label>
+                <div class="input-moeda-wrap">
+                    <span class="input-moeda-wrap__prefix" aria-hidden="true">R$</span>
+                    <input type="text" id="valorVisivelEntrada" class="input-moeda-br" inputmode="numeric" autocomplete="off" required
+                           th:attr="aria-label='Valor em reais'">
+                    <input type="hidden" th:field="*{valor}" class="input-moeda-hidden">
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top:14px;">
+                <button type="submit" class="btn-nav">Guardar</button>
+            </div>
+        </form>
+    </section>
+    <script>
+        (function () {
+            var PAG = 'PAGAMENTO_ALUNO';
+            var radios = document.querySelectorAll('.js-tipo-entrada');
+            var ba = document.getElementById('bloco-aluno');
+            var bl = document.getElementById('bloco-livre');
+            function sync() {
+                var v = null;
+                radios.forEach(function (r) { if (r.checked) v = r.value; });
+                if (v === PAG) {
+                    ba.style.display = 'block';
+                    bl.style.display = 'none';
+                } else {
+                    ba.style.display = 'none';
+                    bl.style.display = 'block';
+                }
+            }
+            radios.forEach(function (r) { r.addEventListener('change', sync); });
+            sync();
+        })();
+        (function () {
+            var MEIO_OUTRO = 'OUTRO';
+            var sel = document.getElementById('meioPagamento');
+            var blo = document.getElementById('bloco-meio-outro');
+            var inp = document.getElementById('meioPagamentoOutro');
+            function syncMeio() {
+                var show = sel && sel.value === MEIO_OUTRO;
+                if (blo) blo.style.display = show ? 'block' : 'none';
+                if (inp) inp.required = show;
+            }
+            if (sel) {
+                sel.addEventListener('change', syncMeio);
+                syncMeio();
+            }
+        })();
+    </script>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script th:src="@{/js/moeda-br.js}" defer></script>
+</body>
+</html>

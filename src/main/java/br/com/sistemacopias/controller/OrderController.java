@@ -12,6 +12,9 @@ import br.com.sistemacopias.model.UserRole;
 import br.com.sistemacopias.service.OrderPdfExportService;
 import br.com.sistemacopias.service.OrderService;
 import br.com.sistemacopias.service.RetroactiveImportService;
+import br.com.sistemacopias.support.ChartBarHelper;
+import br.com.sistemacopias.support.ChartPieHelper;
+import br.com.sistemacopias.support.DashboardVistaUtil;
 import jakarta.validation.Valid;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +33,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -52,7 +56,7 @@ public class OrderController {
     public String index(Model model) {
         OrderForm form = new OrderForm();
         form.getItems().add(new OrderItemForm());
-        prepareFormScreen(model, form, BigDecimal.ZERO);
+        prepareFormScreen(model, form, BigDecimal.ZERO, null);
         return "index";
     }
 
@@ -60,14 +64,14 @@ public class OrderController {
     public String addItem(@ModelAttribute("orderForm") OrderForm form, Model model) {
         form.getItems().add(new OrderItemForm());
         BigDecimal total = orderService.calculateTotal(form);
-        prepareFormScreen(model, form, total);
+        prepareFormScreen(model, form, total, "Linha de item adicionada. Escolha o produto e a quantidade.");
         return "index";
     }
 
     @PostMapping("/pedido/recalcular")
     public String recalculate(@ModelAttribute("orderForm") OrderForm form, Model model) {
         BigDecimal total = orderService.calculateTotal(form);
-        prepareFormScreen(model, form, total);
+        prepareFormScreen(model, form, total, "Total atualizado com base nos itens e precos.");
         return "index";
     }
 
@@ -82,7 +86,7 @@ public class OrderController {
         BigDecimal total = orderService.calculateTotal(form);
 
         if (bindingResult.hasErrors()) {
-            prepareFormScreen(model, form, total);
+            prepareFormScreen(model, form, total, null);
             return "index";
         }
 
@@ -101,7 +105,7 @@ public class OrderController {
             form.getItems().add(new OrderItemForm());
         }
         BigDecimal total = orderService.calculateTotal(form);
-        prepareFormScreen(model, form, total);
+        prepareFormScreen(model, form, total, "Item removido. Total recalculado.");
         return "index";
     }
 
@@ -148,8 +152,19 @@ public class OrderController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model) {
-        model.addAttribute("stats", orderService.buildDashboardStats());
+    public String dashboard(
+            @RequestParam(required = false, defaultValue = "nenhuma") String vistaExtra,
+            Model model) {
+        String vista = DashboardVistaUtil.copias(vistaExtra);
+        var stats = orderService.buildDashboardStats();
+        model.addAttribute("stats", stats);
+        model.addAttribute("vistaExtra", vista);
+        if ("pizza_pagamento".equals(vista)) {
+            ChartPieHelper.buildFromMoneyMap(new LinkedHashMap<>(stats.getPaymentMonthTotals()))
+                    .ifPresent(p -> model.addAttribute("chartPieExtra", p));
+        } else if ("barras_produto".equals(vista)) {
+            model.addAttribute("chartBarrasExtra", ChartBarHelper.horizontalFromMoney(orderService.buildProductMonthTotals()));
+        }
         return "dashboard";
     }
 
@@ -248,12 +263,15 @@ public class OrderController {
         return sb.toString().trim();
     }
 
-    private void prepareFormScreen(Model model, OrderForm form, BigDecimal total) {
+    private void prepareFormScreen(Model model, OrderForm form, BigDecimal total, String feedbackMensagem) {
         model.addAttribute("orderForm", form);
         model.addAttribute("productTypes", ProductType.values());
         model.addAttribute("paymentMethods", PaymentMethod.values());
         model.addAttribute("total", total);
         model.addAttribute("productPricesJson", productPricesJson());
+        if (feedbackMensagem != null && !feedbackMensagem.isBlank()) {
+            model.addAttribute("feedbackMensagem", feedbackMensagem);
+        }
     }
 
     private static String productPricesJson() {

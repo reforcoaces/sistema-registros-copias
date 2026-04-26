@@ -69,7 +69,28 @@ public class AuthInterceptor implements HandlerInterceptor {
             }
             String sis = (String) session.getAttribute(SessionKeys.SISTEMA_ATIVO);
             if (!SessionKeys.REFORCO.equals(sis)) {
-                response.sendRedirect("/");
+                if (SessionKeys.CONTROLE_FLUXO.equals(sis)) {
+                    response.sendRedirect("/controle-fluxo/dashboard");
+                } else {
+                    response.sendRedirect("/");
+                }
+                return false;
+            }
+            return true;
+        }
+
+        if (path.startsWith("/controle-fluxo")) {
+            if (!ReforcoAccess.podeAcessarControleEntradasSaidas(user)) {
+                response.sendRedirect("/escolher-sistema?fluxoNegado=1");
+                return false;
+            }
+            String sis = (String) session.getAttribute(SessionKeys.SISTEMA_ATIVO);
+            if (!SessionKeys.CONTROLE_FLUXO.equals(sis)) {
+                if (SessionKeys.REFORCO.equals(sis)) {
+                    response.sendRedirect("/reforco/dashboard");
+                } else {
+                    response.sendRedirect("/");
+                }
                 return false;
             }
             return true;
@@ -83,6 +104,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         if (SessionKeys.REFORCO.equals(sistema) && isCopiasAppPath(path)) {
             response.sendRedirect("/reforco/dashboard");
+            return false;
+        }
+
+        if (SessionKeys.CONTROLE_FLUXO.equals(sistema) && isCopiasAppPath(path)) {
+            response.sendRedirect("/controle-fluxo/dashboard");
             return false;
         }
 

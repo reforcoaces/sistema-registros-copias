@@ -22,6 +22,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,6 +141,29 @@ public class OrderService {
         }
         stats.setLast7Days(bars);
         return stats;
+    }
+
+    /** Faturamento por produto no mes corrente (descricao -> total). */
+    public Map<String, BigDecimal> buildProductMonthTotals() {
+        YearMonth month = YearMonth.now(APP_ZONE);
+        Map<ProductType, BigDecimal> byType = new EnumMap<>(ProductType.class);
+        for (ProductType p : ProductType.values()) {
+            byType.put(p, BigDecimal.ZERO);
+        }
+        for (OrderRecord o : listAllOrders()) {
+            if (!YearMonth.from(o.getCreatedAt()).equals(month)) {
+                continue;
+            }
+            for (OrderItem it : o.getItems()) {
+                byType.merge(it.getProductType(), it.getTotal(), BigDecimal::add);
+            }
+        }
+        Map<String, BigDecimal> out = new LinkedHashMap<>();
+        byType.entrySet().stream()
+                .filter(e -> e.getValue().compareTo(BigDecimal.ZERO) > 0)
+                .sorted(Comparator.comparing(Map.Entry<ProductType, BigDecimal>::getValue).reversed())
+                .forEach(e -> out.put(e.getKey().getDescricao(), e.getValue()));
+        return out;
     }
 
     public OrderEditForm getOrderForEdit(String id) {

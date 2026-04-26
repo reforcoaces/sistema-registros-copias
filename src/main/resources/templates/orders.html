@@ -7,6 +7,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="container">
     <h1>Historico de Pedidos</h1>
     <header class="app-toolbar" th:if="${currentUser != null}">
@@ -15,7 +16,6 @@
             <span>Perfil: <strong th:text="${currentUser.role}"></strong></span>
         </div>
         <nav class="app-toolbar__nav">
-            <button type="button" class="btn-nav btn-nav--secondary" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }">Voltar</button>
             <a class="btn-nav btn-nav--secondary" th:if="${isAdmin}" href="/usuarios">Usuarios</a>
             <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
         </nav>
@@ -56,12 +56,8 @@
         </p>
     </section>
 
-    <section class="card success-box" th:if="${param.sucesso}">
-        <strong>Pedido finalizado com sucesso!</strong>
-    </section>
-    <section class="card success-box" th:if="${param.editado}">
-        <strong>Pedido atualizado com sucesso!</strong>
-    </section>
+    <div th:if="${param.sucesso}" class="app-feedback app-feedback--ok" role="status" id="orders-feedback">Pedido finalizado com sucesso.</div>
+    <div th:if="${param.editado}" class="app-feedback app-feedback--ok" role="status" id="orders-feedback-ed">Pedido atualizado com sucesso.</div>
     <section class="card error-box" th:if="${param.acessoNegado}">
         <strong>Acesso negado: esta acao e permitida apenas para administrador.</strong>
     </section>
@@ -103,5 +99,19 @@
         </table>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script>
+    (function () {
+        setTimeout(function () {
+            ["orders-feedback", "orders-feedback-ed"].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el) {
+                    el.remove();
+                }
+            });
+        }, 5200);
+    })();
+</script>
 </body>
 </html>

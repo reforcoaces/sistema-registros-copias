@@ -19,6 +19,11 @@ public class CurrentUserAdvice {
         return ReforcoAccess.podeAcessarReforco((AppUser) session.getAttribute("loggedUser"));
     }
 
+    @ModelAttribute("podeControleFluxo")
+    public boolean podeControleFluxo(HttpSession session) {
+        return ReforcoAccess.podeAcessarControleEntradasSaidas((AppUser) session.getAttribute("loggedUser"));
+    }
+
     @ModelAttribute("sistemaAtivo")
     public String sistemaAtivo(HttpSession session) {
         Object v = session.getAttribute(SessionKeys.SISTEMA_ATIVO);

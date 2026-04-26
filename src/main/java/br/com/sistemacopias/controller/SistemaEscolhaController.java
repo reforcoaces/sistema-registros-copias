@@ -35,6 +35,14 @@ public class SistemaEscolhaController {
             session.setAttribute(SessionKeys.SISTEMA_ATIVO, SessionKeys.REFORCO);
             return "redirect:/reforco/dashboard";
         }
+        if ("CONTROLE_FLUXO".equalsIgnoreCase(sistema)) {
+            var user = (br.com.sistemacopias.model.AppUser) session.getAttribute("loggedUser");
+            if (!ReforcoAccess.podeAcessarControleEntradasSaidas(user)) {
+                return "redirect:/escolher-sistema?fluxoNegado=1";
+            }
+            session.setAttribute(SessionKeys.SISTEMA_ATIVO, SessionKeys.CONTROLE_FLUXO);
+            return "redirect:/controle-fluxo/dashboard";
+        }
         return "redirect:/escolher-sistema";
     }
 }

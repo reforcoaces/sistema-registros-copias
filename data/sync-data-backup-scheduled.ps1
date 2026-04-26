@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Se orders.json, users.json, alunos.json, atividades.json ou agenda-semana.json mudaram desde a ultima execucao, copia para a pasta de backup.
+  Se orders.json, users.json, alunos.json, atividades.json, agenda-semana.json, saidas.json ou entradas.json mudaram desde a ultima execucao, copia para a pasta de backup.
 
 .DESCRIPTION
   Corre no Agendador (ex.: a cada 5 minutos). NAO corre no mesmo instante em que a app grava:
@@ -30,6 +30,8 @@ $map = [ordered]@{
     alunos      = "alunos.json"
     atividades  = "atividades.json"
     agenda      = "agenda-semana.json"
+    saidas      = "saidas.json"
+    entradas    = "entradas.json"
 }
 
 function Get-WriteTicks([string] $filePath) {

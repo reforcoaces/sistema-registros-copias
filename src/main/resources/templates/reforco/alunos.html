@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/reforco.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="reforco-wrap">
     <h1>Alunos</h1>
     <header class="app-toolbar" th:if="${currentUser != null}">
@@ -63,5 +64,7 @@
         </table>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
 </body>
 </html>

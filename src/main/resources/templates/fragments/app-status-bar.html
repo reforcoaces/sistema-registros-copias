@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="bar">
+    <link rel="stylesheet" th:href="@{/css/status-bar.css}">
+    <header id="app-status-bar" class="app-status-bar" role="banner" aria-label="Data, hora e temperatura">
+        <div class="app-status-bar__inner">
+            <p class="app-status-bar__line" id="app-status-line"></p>
+            <p class="app-status-bar__temp-wrap" title="Temperatura estimada no local (Open-Meteo)">
+                <span id="app-status-temp" class="app-status-bar__temp">—</span>
+            </p>
+        </div>
+    </header>
+    <script th:src="@{/js/status-bar.js}" defer></script>
+</th:block>
+</body>
+</html>

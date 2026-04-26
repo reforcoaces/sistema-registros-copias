@@ -8,6 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/reforco.css}">
 </head>
 <body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
 <main class="reforco-wrap">
     <h1>Agenda semanal</h1>
     <p class="muted">Segunda a sexta, 8h as 18h, blocos de 1h15 por celula. Preencha o que lembrar para cada horario (aluno, materia, sala, etc.).</p>
@@ -21,9 +22,7 @@
         </nav>
     </header>
 
-    <div class="success-box card" th:if="${param.sucesso}">
-        <strong>Agenda atualizada.</strong>
-    </div>
+    <div th:if="${param.sucesso}" class="app-feedback app-feedback--ok" role="status" id="agenda-feedback">Agenda guardada com sucesso.</div>
 
     <section class="card">
         <form method="post" th:action="@{/reforco/agenda}">
@@ -56,5 +55,17 @@
         </form>
     </section>
 </main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+<script>
+    (function () {
+        var el = document.getElementById('agenda-feedback');
+        if (el) {
+            setTimeout(function () {
+                el.remove();
+            }, 4800);
+        }
+    })();
+</script>
 </body>
 </html>

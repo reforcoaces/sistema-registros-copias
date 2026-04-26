@@ -78,7 +78,7 @@ Sem `spring.mail.host` a aplicacao sobe normalmente; os envios agendados sao ign
 2. Rode a aplicacao:
 
 ```powershell
-./run-local.ps1
+./ligar-sistemas.ps1
 ```
 
 3. Acesse:

@@ -11,6 +11,15 @@ public final class ReforcoAccess {
     }
 
     public static boolean podeAcessarReforco(AppUser user) {
+        return podeLucileneOuAdmin(user);
+    }
+
+    /** Mesmo perfil do Reforco Aces: admin ou colaboradora Lucilene. */
+    public static boolean podeAcessarControleEntradasSaidas(AppUser user) {
+        return podeLucileneOuAdmin(user);
+    }
+
+    private static boolean podeLucileneOuAdmin(AppUser user) {
         if (user == null) {
             return false;
         }

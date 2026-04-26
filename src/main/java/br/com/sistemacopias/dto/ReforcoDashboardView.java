@@ -3,6 +3,7 @@ package br.com.sistemacopias.dto;
 import br.com.sistemacopias.model.AgendaSemana;
 import br.com.sistemacopias.model.AtividadeAluno;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,8 @@ public class ReforcoDashboardView {
     private List<AtividadeAluno> ultimasAtividades;
     private AgendaSemana agenda;
     private Map<String, String> nomeAlunoPorId;
+    /** Contagem por nivel escolar (label -> quantidade de alunos). */
+    private Map<String, Integer> alunosPorEscolaridade = new LinkedHashMap<>();
 
     public Map<String, String> getNomeAlunoPorId() {
         return nomeAlunoPorId;
@@ -20,6 +23,14 @@ public class ReforcoDashboardView {
 
     public void setNomeAlunoPorId(Map<String, String> nomeAlunoPorId) {
         this.nomeAlunoPorId = nomeAlunoPorId;
+    }
+
+    public Map<String, Integer> getAlunosPorEscolaridade() {
+        return alunosPorEscolaridade;
+    }
+
+    public void setAlunosPorEscolaridade(Map<String, Integer> alunosPorEscolaridade) {
+        this.alunosPorEscolaridade = alunosPorEscolaridade != null ? alunosPorEscolaridade : new LinkedHashMap<>();
     }
 
     public int getTotalAlunos() {
