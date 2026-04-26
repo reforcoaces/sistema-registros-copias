@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reforco Aces — Alunos</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/reforco.css}">
+</head>
+<body>
+<main class="reforco-wrap">
+    <h1>Alunos</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row">
+        <a class="btn-nav" href="/reforco/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/reforco/alunos">Alunos</a>
+        <a class="btn-nav" href="/reforco/agenda">Agenda semanal</a>
+    </nav>
+
+    <div class="success-box card" th:if="${param.sucesso}">
+        <strong>Aluno guardado com sucesso.</strong>
+    </div>
+
+    <section class="card" style="margin-top: 16px;">
+        <a class="btn-nav" href="/reforco/alunos/novo">Cadastrar novo aluno</a>
+    </section>
+
+    <section class="card" style="margin-top: 16px;">
+        <h2>Lista</h2>
+        <p th:if="${alunos.isEmpty()}" class="muted">Nenhum aluno cadastrado.</p>
+        <table class="alunos-table" th:if="${!alunos.isEmpty()}">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Idade</th>
+                <th>Escolaridade</th>
+                <th>PCD</th>
+                <th>Acoes</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${alunos}">
+                <td th:text="${a.nomeCompleto}">Nome</td>
+                <td th:text="${a.idade}">0</td>
+                <td th:text="${a.escolaridade.label}">—</td>
+                <td th:text="${a.pcd} ? 'Sim' : 'Nao'">Nao</td>
+                <td>
+                    <a class="btn-nav btn-nav--secondary" style="min-height:36px;padding:6px 12px;font-size:0.8rem;"
+                       th:href="@{/reforco/alunos/{id}(id=${a.id})}">Detalhe / atividades</a>
+                    <a class="btn-nav btn-nav--secondary" style="min-height:36px;padding:6px 12px;font-size:0.8rem;"
+                       th:href="@{/reforco/alunos/{id}/editar(id=${a.id})}">Editar</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

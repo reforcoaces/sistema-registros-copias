@@ -1,6 +1,7 @@
 package br.com.sistemacopias.controller;
 
 import br.com.sistemacopias.service.UserService;
+import br.com.sistemacopias.support.SessionKeys;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,7 +30,8 @@ public class AuthController {
         return userService.authenticate(username, password)
                 .map(user -> {
                     session.setAttribute("loggedUser", user);
-                    return "redirect:/";
+                    session.removeAttribute(SessionKeys.SISTEMA_ATIVO);
+                    return "redirect:/escolher-sistema";
                 })
                 .orElseGet(() -> {
                     model.addAttribute("error", "Usuario ou senha invalidos");

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo}">Aluno</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/reforco.css}">
+</head>
+<body>
+<main class="reforco-wrap">
+    <h1 th:text="${titulo}">Aluno</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Voltar a lista</a>
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+
+    <section class="card">
+        <form th:object="${alunoForm}" method="post"
+              th:action="${editMode} ? |/reforco/alunos/${alunoForm.id}/editar| : @{/reforco/alunos/novo}">
+            <input type="hidden" th:field="*{id}" th:if="${editMode}">
+            <div class="error-box" th:if="${#fields.hasAnyErrors()}">
+                <ul>
+                    <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
+                </ul>
+            </div>
+
+            <label for="nome">Nome completo</label>
+            <input id="nome" th:field="*{nomeCompleto}" required>
+
+            <label for="idade">Idade</label>
+            <input id="idade" type="number" min="1" max="120" th:field="*{idade}" required>
+
+            <fieldset style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin:12px 0;">
+                <legend>Escolaridade (marque uma opcao)</legend>
+                <div class="escolaridade-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+                    <label th:each="e : ${escolaridades}" style="display:flex;align-items:center;gap:8px;">
+                        <input type="radio" th:field="*{escolaridade}" th:value="${e}" required>
+                        <span th:text="${e.label}">Nivel</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <label style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+                <input type="checkbox" th:field="*{pcd}">
+                PCD (pessoa com deficiencia)
+            </label>
+
+            <div class="actions" style="margin-top:16px;">
+                <button type="submit" class="btn-nav">Guardar</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

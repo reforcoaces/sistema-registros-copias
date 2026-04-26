@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolher sistema</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container sistema-escolha">
+    <h1>Escolher sistema</h1>
+    <p class="lead">Selecione em qual modulo deseja trabalhar agora.</p>
+
+    <div class="error-box" th:if="${param.reforcoNegado}">
+        Acesso ao modulo Reforco Aces nao permitido para este usuario.
+    </div>
+
+    <div class="sistema-cards">
+        <form method="post" action="/escolher-sistema" class="card sistema-card">
+            <input type="hidden" name="sistema" value="COPIAS">
+            <h2>Registro de copias</h2>
+            <p>Atendimentos, pedidos, relatorios e exportacao.</p>
+            <button type="submit" class="btn-nav">Entrar</button>
+        </form>
+
+        <form method="post" action="/escolher-sistema" class="card sistema-card" th:if="${podeReforco}">
+            <input type="hidden" name="sistema" value="REFORCO">
+            <h2>Reforco Aces</h2>
+            <p>Alunos, atividades, agenda semanal e acompanhamento pedagogico.</p>
+            <button type="submit" class="btn-nav">Entrar</button>
+        </form>
+
+        <section class="card sistema-card sistema-card--disabled" th:unless="${podeReforco}">
+            <h2>Reforco Aces</h2>
+            <p class="muted">Disponivel apenas para administracao e para a colaboradora Lucilene.</p>
+            <button type="button" class="btn-nav btn-nav--secondary" disabled>Indisponivel</button>
+        </section>
+    </div>
+
+    <p class="muted" style="margin-top: 20px;">
+        <a href="/logout">Sair da conta</a>
+    </p>
+</main>
+</body>
+</html>

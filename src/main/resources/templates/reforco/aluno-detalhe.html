@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${aluno.nomeCompleto}">Aluno</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/reforco.css}">
+</head>
+<body>
+<main class="reforco-wrap">
+    <h1 th:text="${aluno.nomeCompleto}">Aluno</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Lista de alunos</a>
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+
+    <section class="card">
+        <h2>Dados</h2>
+        <p><strong>Idade:</strong> <span th:text="${aluno.idade}">0</span></p>
+        <p><strong>Escolaridade:</strong> <span th:text="${aluno.escolaridade.label}">—</span></p>
+        <p><strong>PCD:</strong> <span th:text="${aluno.pcd} ? 'Sim' : 'Nao'">Nao</span></p>
+        <p><a class="btn-nav btn-nav--secondary" style="display:inline-flex;margin-top:8px;"
+              th:href="@{/reforco/alunos/{id}/editar(id=${aluno.id})}">Editar cadastro</a></p>
+    </section>
+
+    <div class="success-box card" th:if="${param.atividadeOk}">
+        <strong>Atividade registada.</strong>
+    </div>
+
+    <section class="card">
+        <h2>Nova atividade</h2>
+        <p class="muted">Data e hora sao registadas automaticamente. Professora: Lucilene Ramos.</p>
+        <form th:action="@{/reforco/alunos/{id}/atividades(id=${aluno.id})}" method="post" th:object="${atividadeForm}">
+            <div class="error-box" th:if="${#fields.hasAnyErrors()}">
+                <ul>
+                    <li th:each="e : ${#fields.errors('*')}" th:text="${e}"></li>
+                </ul>
+            </div>
+            <label for="texto">Descricao da atividade</label>
+            <textarea id="texto" rows="4" th:field="*{texto}" required placeholder="Ex.: Revisao de fracoes — exercicios da pagina 42."></textarea>
+            <div class="actions" style="margin-top:10px;">
+                <button type="submit" class="btn-nav">Registar atividade</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Historico de atividades</h2>
+        <p th:if="${atividades.isEmpty()}" class="muted">Ainda nao ha registos.</p>
+        <ul class="act-list" th:if="${!atividades.isEmpty()}">
+            <li th:each="act : ${atividades}">
+                <div class="act-meta">
+                    <span th:text="${#temporals.format(act.createdAt, 'dd/MM/yyyy HH:mm')}">data</span>
+                    &mdash;
+                    <span th:text="${act.professora}">Prof.</span>
+                </div>
+                <div th:text="${act.texto}">texto</div>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>

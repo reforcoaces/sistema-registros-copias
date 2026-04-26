@@ -24,6 +24,7 @@
         <a class="btn-nav btn-nav--secondary" href="/">Novo atendimento</a>
         <a class="btn-nav" href="/dashboard">Dashboard</a>
         <a class="btn-nav" href="/pedidos">Historico</a>
+        <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
         <a class="btn-nav btn-nav--muted" th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" href="/importacao">Importacao retroativa</a>
         <a class="btn-nav btn-nav--export" th:href="@{/pedidos/export.csv(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar CSV</a>
         <a class="btn-nav btn-nav--export" th:href="@{/pedidos/export.pdf(dataInicio=${filterDataInicio},dataFim=${filterDataFim},pagamento=${filterPagamento})}">Exportar PDF</a>

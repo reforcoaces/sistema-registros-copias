@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Se orders.json ou users.json mudaram desde a ultima execucao, copia para a pasta de backup.
+  Se orders.json, users.json, alunos.json, atividades.json ou agenda-semana.json mudaram desde a ultima execucao, copia para a pasta de backup.
 
 .DESCRIPTION
   Corre no Agendador (ex.: a cada 5 minutos). NAO corre no mesmo instante em que a app grava:
@@ -25,8 +25,11 @@ $ErrorActionPreference = "Stop"
 $dataDir = $PSScriptRoot
 $statePath = Join-Path $dataDir ".backup-sync-state.json"
 $map = [ordered]@{
-    orders = "orders.json"
-    users  = "users.json"
+    orders      = "orders.json"
+    users       = "users.json"
+    alunos      = "alunos.json"
+    atividades  = "atividades.json"
+    agenda      = "agenda-semana.json"
 }
 
 function Get-WriteTicks([string] $filePath) {
@@ -74,7 +77,7 @@ foreach ($key in $map.Keys) {
 }
 
 if (-not $changed) {
-    Write-Host ("[{0}] Sem alteracoes em orders.json / users.json. Nada a copiar." -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"))
+    Write-Host ("[{0}] Sem alteracoes nos ficheiros monitorizados. Nada a copiar." -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"))
     exit 0
 }
 

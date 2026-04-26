@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reforco Aces — Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/reforco.css}">
+</head>
+<body>
+<main class="reforco-wrap">
+    <h1>Reforco Aces — Dashboard</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+            <span>Modulo: <strong>Reforco Aces</strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+    <nav class="nav-row" aria-label="Modulo Reforco">
+        <a class="btn-nav" href="/reforco/dashboard">Dashboard</a>
+        <a class="btn-nav" href="/reforco/alunos">Alunos</a>
+        <a class="btn-nav" href="/reforco/agenda">Agenda semanal</a>
+    </nav>
+
+    <div class="dash-grid" style="margin-top: 8px;">
+        <div class="dash-card dash-blue">
+            <span class="dash-label">Alunos cadastrados</span>
+            <span class="dash-value" th:text="${dash.totalAlunos}">0</span>
+        </div>
+        <div class="dash-card dash-orange">
+            <span class="dash-label">Alunos PCD</span>
+            <span class="dash-value" th:text="${dash.alunosPcd}">0</span>
+        </div>
+        <div class="dash-card dash-green">
+            <span class="dash-label">Atividades (7 dias)</span>
+            <span class="dash-value" th:text="${dash.atividadesUltimos7Dias}">0</span>
+        </div>
+    </div>
+
+    <section class="card dash-section" style="margin-top: 20px;">
+        <h2>Agenda da semana (visao rapida)</h2>
+        <p class="muted">Para editar, use <a href="/reforco/agenda">Agenda semanal</a>.</p>
+        <div class="agenda-table-wrap">
+            <table class="agenda-table agenda-mini">
+                <thead>
+                <tr>
+                    <th class="hora-col">Horario</th>
+                    <th>Segunda</th>
+                        <th>Terca-feira</th>
+                    <th>Quarta</th>
+                    <th>Quinta</th>
+                    <th>Sexta</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="linha : ${linhasAgenda}">
+                    <td class="hora-col" th:text="${linha[0].horarioLabel()}">08:00</td>
+                    <td th:each="c : ${linha}">
+                        <span th:text="${#strings.isEmpty(dash.agenda.textos[c.id()])} ? '—' : ${dash.agenda.textos[c.id()]}">—</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card dash-section">
+        <h2>Ultimas atividades registradas</h2>
+        <ul class="act-list" th:if="${!dash.ultimasAtividades.isEmpty()}">
+            <li th:each="a : ${dash.ultimasAtividades}">
+                <div class="act-meta">
+                    <span th:text="${#temporals.format(a.createdAt, 'dd/MM/yyyy HH:mm')}">data</span>
+                    &mdash;
+                    <strong th:text="${dash.nomeAlunoPorId != null ? dash.nomeAlunoPorId[a.alunoId] : 'Aluno'}">Aluno</strong>
+                    &mdash;
+                    <span th:text="${a.professora}">Prof.</span>
+                </div>
+                <div th:text="${a.texto}">texto</div>
+            </li>
+        </ul>
+        <p th:if="${dash.ultimasAtividades.isEmpty()}" class="muted">Nenhuma atividade registada ainda.</p>
+    </section>
+</main>
+</body>
+</html>

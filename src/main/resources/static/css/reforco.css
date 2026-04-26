@@ -1,0 +1,106 @@
+/* Modulo Reforco Aces */
+main.reforco-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.sistema-escolha .lead {
+    color: #475569;
+    margin-bottom: 20px;
+}
+
+.sistema-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    align-items: stretch;
+}
+
+.sistema-card h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+}
+
+.sistema-card--disabled {
+    opacity: 0.75;
+}
+
+.agenda-table-wrap {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+
+table.agenda-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    min-width: 720px;
+}
+
+table.agenda-table th,
+table.agenda-table td {
+    border: 1px solid #cbd5e1;
+    padding: 6px;
+    vertical-align: top;
+    background: #fff;
+}
+
+table.agenda-table th {
+    background: #e2e8f0;
+    font-weight: 600;
+}
+
+table.agenda-table .hora-col {
+    width: 110px;
+    white-space: nowrap;
+    background: #f1f5f9;
+    font-weight: 600;
+}
+
+table.agenda-table textarea {
+    width: 100%;
+    min-height: 52px;
+    resize: vertical;
+    font: inherit;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+table.agenda-mini textarea {
+    min-height: 36px;
+    font-size: 0.75rem;
+}
+
+.alunos-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alunos-table th,
+.alunos-table td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 8px;
+    text-align: left;
+}
+
+.act-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.act-list li {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.act-meta {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 6px;
+}

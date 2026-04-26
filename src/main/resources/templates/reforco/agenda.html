@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reforco Aces — Agenda semanal</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/reforco.css}">
+</head>
+<body>
+<main class="reforco-wrap">
+    <h1>Agenda semanal</h1>
+    <p class="muted">Segunda a sexta, 8h as 18h, blocos de 1h15 por celula. Preencha o que lembrar para cada horario (aluno, materia, sala, etc.).</p>
+
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/reforco/dashboard">Dashboard</a>
+            <a class="btn-nav btn-nav--secondary" href="/reforco/alunos">Alunos</a>
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+
+    <div class="success-box card" th:if="${param.sucesso}">
+        <strong>Agenda atualizada.</strong>
+    </div>
+
+    <section class="card">
+        <form method="post" th:action="@{/reforco/agenda}">
+            <div class="agenda-table-wrap">
+                <table class="agenda-table">
+                    <thead>
+                    <tr>
+                        <th class="hora-col">Horario</th>
+                        <th>Segunda</th>
+                        <th>Terca-feira</th>
+                        <th>Quarta</th>
+                        <th>Quinta</th>
+                        <th>Sexta</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="linha : ${linhasAgenda}">
+                        <td class="hora-col" th:text="${linha[0].horarioLabel()}">08:00</td>
+                        <td th:each="c : ${linha}">
+                            <textarea th:name="|t_${c.id()}|"
+                                      th:text="${agenda.textos[c.id()] != null ? agenda.textos[c.id()] : ''}"></textarea>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="actions" style="margin-top:16px;">
+                <button type="submit" class="btn-nav">Guardar agenda</button>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

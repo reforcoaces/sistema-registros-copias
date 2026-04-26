@@ -90,6 +90,7 @@
         <a class="btn-nav" href="/pedidos">Ver historico de pedidos</a>
         <a class="btn-nav" href="/relatorios">Ver relatorios</a>
         <a class="btn-nav btn-nav--muted" th:if="${currentUser != null and currentUser.role.name() == 'ADMIN'}" href="/importacao">Importacao retroativa</a>
+        <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
     </nav>
 </main>
 <script th:src="@{/js/pedido-form-total.js}" defer></script>
