@@ -72,6 +72,8 @@ public class AuthInterceptor implements HandlerInterceptor {
             if (!SessionKeys.REFORCO.equals(sis)) {
                 if (SessionKeys.CONTROLE_FLUXO.equals(sis)) {
                     response.sendRedirect("/controle-fluxo/dashboard");
+                } else if (SessionKeys.BIBLIOTECA.equals(sis)) {
+                    response.sendRedirect("/biblioteca");
                 } else {
                     response.sendRedirect("/");
                 }
@@ -89,6 +91,23 @@ public class AuthInterceptor implements HandlerInterceptor {
             if (!SessionKeys.CONTROLE_FLUXO.equals(sis)) {
                 if (SessionKeys.REFORCO.equals(sis)) {
                     response.sendRedirect("/reforco/dashboard");
+                } else if (SessionKeys.BIBLIOTECA.equals(sis)) {
+                    response.sendRedirect("/biblioteca");
+                } else {
+                    response.sendRedirect("/");
+                }
+                return false;
+            }
+            return true;
+        }
+
+        if (path.startsWith("/biblioteca")) {
+            String sis = (String) session.getAttribute(SessionKeys.SISTEMA_ATIVO);
+            if (!SessionKeys.BIBLIOTECA.equals(sis)) {
+                if (SessionKeys.REFORCO.equals(sis)) {
+                    response.sendRedirect("/reforco/dashboard");
+                } else if (SessionKeys.CONTROLE_FLUXO.equals(sis)) {
+                    response.sendRedirect("/controle-fluxo/dashboard");
                 } else {
                     response.sendRedirect("/");
                 }
@@ -110,6 +129,11 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         if (SessionKeys.CONTROLE_FLUXO.equals(sistema) && isCopiasAppPath(path)) {
             response.sendRedirect("/controle-fluxo/dashboard");
+            return false;
+        }
+
+        if (SessionKeys.BIBLIOTECA.equals(sistema) && isCopiasAppPath(path)) {
+            response.sendRedirect("/biblioteca");
             return false;
         }
 

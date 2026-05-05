@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo emprestimo — Biblioteca ACES</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/biblioteca.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="container biblioteca-wrap">
+    <h1>Novo emprestimo</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+            <span>Modulo: <strong>Biblioteca ACES</strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+
+    <nav class="nav-row" aria-label="Biblioteca">
+        <a class="btn-nav btn-nav--secondary" href="/biblioteca">Voltar a lista</a>
+    </nav>
+
+    <section class="card">
+        <form th:object="${emprestimoForm}" method="post" th:action="@{/biblioteca/novo}">
+            <div class="error-box" th:if="${#fields.hasAnyErrors()}">
+                <p>Corrija os erros abaixo:</p>
+                <ul>
+                    <li th:each="err : ${#fields.errors('*')}" th:text="${err}"></li>
+                </ul>
+            </div>
+
+            <label for="alunoId">Aluno</label>
+            <p class="muted" style="margin-top:0;margin-bottom:8px;font-size:0.9rem;">
+                Lista dos alunos cadastrados no modulo <strong>Reforco Aces</strong>.
+            </p>
+            <select id="alunoId" th:field="*{alunoId}" required th:disabled="${alunos == null or alunos.isEmpty()}">
+                <option value="" th:disabled="${alunos != null and !alunos.isEmpty()}">Selecione o aluno...</option>
+                <option th:each="a : ${alunos}" th:value="${a.id}" th:text="${a.nomeCompleto}">Nome</option>
+            </select>
+            <p class="error-box" th:if="${alunos == null or alunos.isEmpty()}" style="margin-top:10px;">
+                Nao ha alunos cadastrados. Cadastre alunos em <a href="/escolher-sistema?trocar=1">Reforco Aces</a> (Alunos) antes de registar emprestimos.
+            </p>
+
+            <label for="tituloLivro">Titulo do livro</label>
+            <input id="tituloLivro" type="text" th:field="*{tituloLivro}" maxlength="500" required>
+
+            <label for="dataEmprestimo">Data do emprestimo</label>
+            <input id="dataEmprestimo" type="date" th:field="*{dataEmprestimo}" required>
+
+            <label for="dataDevolucaoPrevista">Data prevista de devolucao</label>
+            <input id="dataDevolucaoPrevista" type="date" th:field="*{dataDevolucaoPrevista}" required>
+
+            <p style="margin-top: 16px;">
+                <button type="submit" class="btn-nav" th:disabled="${alunos == null or alunos.isEmpty()}">Registar emprestimo</button>
+            </p>
+        </form>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+</body>
+</html>

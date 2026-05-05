@@ -50,6 +50,16 @@
             <button type="submit" class="btn-nav">Entrar</button>
         </form>
 
+        <form method="post" action="/escolher-sistema" class="card sistema-card">
+            <input type="hidden" name="sistema" value="BIBLIOTECA">
+            <div class="sistema-card__head">
+                <img class="sistema-card__logo" th:src="@{/images/biblioteca-aces.svg}" alt="Biblioteca ACES" width="80" height="80">
+                <h2 class="sistema-card__title">Biblioteca ACES</h2>
+            </div>
+            <p>Registro de emprestimos de livros para alunos e controle das datas de devolucao.</p>
+            <button type="submit" class="btn-nav">Entrar</button>
+        </form>
+
         <section class="card sistema-card sistema-card--disabled" th:unless="${podeReforco}">
             <h2>Modulos Reforco Aces e Controle financeiro</h2>
             <p class="muted">Disponiveis apenas para administracao e para a colaboradora Lucilene.</p>

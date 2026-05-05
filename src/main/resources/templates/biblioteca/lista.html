@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca ACES</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/biblioteca.css}">
+</head>
+<body>
+<th:block th:replace="~{fragments/app-status-bar :: bar}"></th:block>
+<main class="container biblioteca-wrap">
+    <h1>Biblioteca ACES</h1>
+    <header class="app-toolbar" th:if="${currentUser != null}">
+        <div class="app-toolbar__user">
+            <span>Usuario: <strong th:text="${currentUser.username}"></strong></span>
+            <span>Modulo: <strong>Biblioteca ACES</strong></span>
+        </div>
+        <nav class="app-toolbar__nav">
+            <a class="btn-nav btn-nav--secondary" href="/escolher-sistema?trocar=1">Trocar sistema</a>
+            <a class="btn-nav btn-nav--danger" href="/logout">Sair</a>
+        </nav>
+    </header>
+
+    <nav class="nav-row" aria-label="Biblioteca">
+        <a class="btn-nav" href="/biblioteca">Emprestimos</a>
+        <a class="btn-nav" href="/biblioteca/novo">Novo emprestimo</a>
+    </nav>
+
+    <div class="app-feedback app-feedback--info" th:if="${param.registado}" role="status">
+        Emprestimo registado.
+    </div>
+
+    <section class="card" th:if="${emprestimos == null or emprestimos.isEmpty()}">
+        <p class="muted">Nenhum emprestimo registado ainda. Use <a href="/biblioteca/novo">Novo emprestimo</a> para comecar.</p>
+    </section>
+
+    <section class="card" th:if="${emprestimos != null and !emprestimos.isEmpty()}">
+        <h2 class="biblioteca-card__title">Emprestimos</h2>
+        <div class="table-scroll">
+            <table class="biblioteca-table">
+                <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Livro</th>
+                    <th>Emprestimo</th>
+                    <th>Devolucao prevista</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="e : ${emprestimos}"
+                    th:classappend="${e.dataDevolucaoPrevista.isBefore(hoje)} ? ' biblioteca-table__atrasado' : ''">
+                    <td th:text="${e.nomeAluno}">—</td>
+                    <td th:text="${e.tituloLivro}">—</td>
+                    <td th:text="${#temporals.format(e.dataEmprestimo, 'dd/MM/yyyy')}">—</td>
+                    <td th:text="${#temporals.format(e.dataDevolucaoPrevista, 'dd/MM/yyyy')}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="muted biblioteca-legenda" th:if="${emprestimos != null and !emprestimos.isEmpty()}">
+            Linhas destacadas: data de devolucao ja passou (livro em atraso na data de referencia de hoje).
+        </p>
+    </section>
+</main>
+<th:block th:replace="~{fragments/app-footer :: voltarInferior}"></th:block>
+<script th:src="@{/js/app-ui.js}" defer></script>
+</body>
+</html>

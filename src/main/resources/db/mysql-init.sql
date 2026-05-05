@@ -132,3 +132,21 @@ CREATE TABLE IF NOT EXISTS fluxo_origem_compra_custom (
   PRIMARY KEY (id),
   UNIQUE KEY uk_fluxo_origem_nome (nome)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- Biblioteca ACES (emprestimos)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS biblioteca_emprestimo (
+  id                         VARCHAR(36)  NOT NULL,
+  nome_aluno                 VARCHAR(300) NOT NULL,
+  aluno_id                   VARCHAR(36),
+  titulo_livro               VARCHAR(500) NOT NULL,
+  data_emprestimo            DATE         NOT NULL,
+  data_devolucao_prevista    DATE         NOT NULL,
+  created_at                 DATETIME(6),
+  PRIMARY KEY (id),
+  KEY idx_biblioteca_devolucao (data_devolucao_prevista),
+  KEY idx_biblioteca_aluno (aluno_id),
+  CONSTRAINT fk_biblioteca_aluno
+    FOREIGN KEY (aluno_id) REFERENCES reforco_aluno (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

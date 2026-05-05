@@ -43,6 +43,10 @@ public class SistemaEscolhaController {
             session.setAttribute(SessionKeys.SISTEMA_ATIVO, SessionKeys.CONTROLE_FLUXO);
             return "redirect:/controle-fluxo/dashboard";
         }
+        if ("BIBLIOTECA".equalsIgnoreCase(sistema)) {
+            session.setAttribute(SessionKeys.SISTEMA_ATIVO, SessionKeys.BIBLIOTECA);
+            return "redirect:/biblioteca";
+        }
         return "redirect:/escolher-sistema";
     }
 }

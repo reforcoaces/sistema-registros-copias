@@ -45,6 +45,8 @@ window.voltarApp = function () {
         window.location.href = "/controle-fluxo/dashboard";
     } else if (p.indexOf("/reforco") === 0) {
         window.location.href = "/reforco/dashboard";
+    } else if (p.indexOf("/biblioteca") === 0) {
+        window.location.href = "/biblioteca";
     } else if (p === "/escolher-sistema") {
         window.location.href = "/login";
     } else {

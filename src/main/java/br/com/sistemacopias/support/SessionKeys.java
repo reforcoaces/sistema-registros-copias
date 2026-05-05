@@ -6,6 +6,8 @@ public final class SessionKeys {
     public static final String REFORCO = "REFORCO";
     /** Controle de entradas e saidas (financeiro). */
     public static final String CONTROLE_FLUXO = "CONTROLE_FLUXO";
+    /** Biblioteca ACES — emprestimos de livros. */
+    public static final String BIBLIOTECA = "BIBLIOTECA";
 
     private SessionKeys() {
     }

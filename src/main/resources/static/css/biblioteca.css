@@ -1,0 +1,51 @@
+/* Modulo Biblioteca ACES */
+.biblioteca-wrap .nav-row {
+    margin-bottom: 16px;
+}
+
+.biblioteca-wrap select#alunoId {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    margin-top: 4px;
+}
+
+.biblioteca-card__title {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+}
+
+.biblioteca-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.biblioteca-table th,
+.biblioteca-table td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.biblioteca-table th {
+    font-weight: 600;
+    color: #334155;
+    background: #f8fafc;
+}
+
+.biblioteca-table__atrasado td {
+    background: #fff7ed;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.biblioteca-legenda {
+    margin-top: 12px;
+    margin-bottom: 0;
+    font-size: 0.85rem;
+}
